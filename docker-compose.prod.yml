@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: prod-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prod-backend
+    env_file:
+      - ./backend/.env.production
+    command: pdm run gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 src.main:app
+    expose:
+      - 8000
+    depends_on:
+      - postgres_db
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prod-frontend
+    environment:
+      - NUXT_PUBLIC_API_BASE=/api/v1
+    expose:
+      - 3000
+    restart: unless-stopped
+
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: prod-postgres-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-fastapi_db}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: prod-redis
+    volumes:
+      - redis_data_prod:/data
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: prod-mailhog
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod: 

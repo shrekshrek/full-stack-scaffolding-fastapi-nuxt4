@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+# 工作流护栏 (Workflow Guardrails)
+
+本规则旨在为 AI 提供关于项目工作流的核心约束，以防止在不同子目录（如 `frontend`, `backend`）中执行错误的操作。
+
+
+### 1. 全局命令
+
+-   **首次安装**: `pnpm setup` (安装所有依赖并构建Docker镜像)
+-   **启动开发环境**: `pnpm dev` (启动所有服务)
+-   **关闭开发环境**: `pnpm stop` (关闭所有服务)
+
+### 2. 核心原则：目录优先
+
+在执行任何**文件系统相关**或**进程相关**的命令前，**必须**首先确认当前工作目录（CWD）。
+
+### 3. 前端操作 (`/frontend`)
+
+-   **路径**: 所有前端相关的操作，工作目录**必须**是 `/frontend`。
+-   **包管理器**: **必须**使用 `pnpm` 进行依赖管理。
+-   **快捷命令**: 优先使用根目录 `package.json` 中定义的 `fe:*` 脚本，例如：
+    -   安装所有依赖: `pnpm fe:install`
+    -   添加新依赖: `pnpm fe:add <package-name>`
+    -   启动开发服务: `pnpm fe:dev`
+
+### 4. 后端操作 (`/backend`)
+
+-   **路径**: 所有后端相关的操作，工作目录**必须**是 `/backend`。
+-   **包管理器**: **必须**使用 `pdm` 进行依赖管理。
+-   **快捷命令**: 优先使用根目录 `package.json` 中定义的 `be:*` 脚本，例如：
+    -   安装所有依赖: `pnpm be:install`
+    -   添加新依赖: `pnpm be:add <package-name>`
+    -   启动开发服务: `pnpm be:dev`
+    -   执行数据库迁移: `pnpm be:migrate`
+    -   进入虚拟环境: `pnpm be:shell`

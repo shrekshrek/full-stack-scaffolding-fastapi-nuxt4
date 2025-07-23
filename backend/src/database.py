@@ -1,0 +1,59 @@
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+from .config import settings
+
+# Recommended naming convention for PostgreSQL
+# See: https://alembic.sqlalchemy.org/en/latest/naming.html
+POSTGRES_NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+metadata = MetaData(naming_convention=POSTGRES_NAMING_CONVENTION)
+
+# Create the SQLAlchemy engine (sync)
+engine = create_engine(
+    settings.DATABASE_URL,
+    # connect_args={"check_same_thread": False} # Needed for SQLite
+)
+
+# Create async engine
+async_engine = create_async_engine(
+    settings.DATABASE_URL.replace("postgresql+psycopg://", "postgresql+asyncpg://"),
+)
+
+# Create sessionmakers
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(
+    async_engine, class_=AsyncSession, expire_on_commit=False
+)
+
+# Base class for declarative models, now with naming convention
+Base = declarative_base(metadata=metadata)
+
+
+# Dependency to get a DB session (sync)
+def get_db():
+    """
+    FastAPI dependency that provides a SQLAlchemy database session.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Dependency to get a DB session (async)
+async def get_async_db():
+    """
+    FastAPI dependency that provides an async SQLAlchemy database session.
+    """
+    async with AsyncSessionLocal() as session:
+        yield session 

@@ -1,0 +1,67 @@
+# Environments
+.env*
+!.env.example
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.swp
+
+# OS specific
+.DS_Store
+__MACOSX
+
+# Dependencies
+node_modules/
+
+# --- Frontend (Nuxt.js) ---
+/.nuxt/
+frontend/.nuxt/
+frontend/.output/
+frontend/dist/
+
+# --- Backend (Python/PDM) ---
+backend/.venv/
+backend/.py[cod]
+backend/__pycache__/
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/.pdm-python
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtualenv
+.venv
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing
+backend/test.db
+.pytest_cache/
+backend/.env.production

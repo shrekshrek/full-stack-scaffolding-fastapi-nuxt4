@@ -1,0 +1,39 @@
+{
+  "name": "full-stack-monorepo",
+  "private": true,
+  "scripts": {
+    "setup": "pnpm install && docker-compose build",
+    "//--- Development ---": "",
+    "dev": "pnpm stop && concurrently -k -n DOCKER,WEB -c blue,cyan 'docker-compose up --build' 'pnpm fe:dev'",
+    "stop": "docker-compose down",
+    "//--- Production ---": "",
+    "build": "docker-compose -f docker-compose.prod.yml build",
+    "build:fe": "docker-compose -f docker-compose.prod.yml build frontend",
+    "build:be": "docker-compose -f docker-compose.prod.yml build backend",
+    "prod:deploy": "./scripts/deploy-production.sh",
+    "prod:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "prod:down": "docker-compose -f docker-compose.prod.yml down",
+    "prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "prod:restart": "docker-compose -f docker-compose.prod.yml restart",
+    "//--- Infrastructure (Dev) ---": "",
+    "compose:up": "docker-compose up",
+    "compose:down": "docker-compose down",
+    "//--- Frontend (Nuxt) ---": "",
+    "fe:install": "pnpm --filter nuxt-app install",
+    "fe:add": "pnpm --filter nuxt-app add",
+    "fe:dev": "pnpm --filter nuxt-app dev",
+    "//--- Backend (FastAPI) ---": "",
+    "be:install": "docker-compose exec backend pdm install",
+    "be:add": "docker-compose exec backend pdm add",
+    "be:shell": "docker-compose exec backend /bin/bash",
+    "be:db:cli": "docker-compose exec postgres-db psql -U postgres -d fastapi_db",
+    "be:migrate:up": "docker-compose exec backend pdm run alembic upgrade head",
+    "be:migrate:make": "docker-compose exec backend pdm run alembic revision --autogenerate -m",
+    "be:bootstrap": "docker-compose exec backend python scripts/bootstrap.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "dotenv-cli": "^8.0.0"
+  },
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
+}

@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* 根据官方文档，@nuxtjs/color-mode会自动处理深色模式 */
+/* 这里只定义UI变量 */
