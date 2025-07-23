@@ -7,7 +7,8 @@ export default defineNuxtPlugin(async () => {
   if (import.meta.server) return
 
   const { status, data } = useAuth()
-  const { useUserStore } = await import('~/layers/auth/stores/user')
+  const { useUserStore } = await import('../../layers/auth/stores/user')
+  const { usePermissionsStore } = await import('../../stores/permissions')
   const userStore = useUserStore()
   const permissionsStore = usePermissionsStore()
 

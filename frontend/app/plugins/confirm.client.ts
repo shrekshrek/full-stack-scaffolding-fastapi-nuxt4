@@ -36,7 +36,7 @@ export default defineNuxtPlugin(() => {
     } = opts
 
     // 动态导入确认对话框组件
-    const ConfirmModal = (await import('~/app/components/ConfirmModal.vue')).default
+    const ConfirmModal = (await import('../components/ConfirmModal.vue')).default
     
     // 使用Nuxt UI v3的useOverlay来程序化创建模态框
     const overlay = useOverlay()

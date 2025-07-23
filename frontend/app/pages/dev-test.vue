@@ -395,8 +395,9 @@
 </template>
 
 <script setup lang="ts">
-import { PERMISSIONS, isSystemPermission } from '~/config/permissions'
-import { getRoleLabel } from '~/layers/users/utils/ui-helpers'
+import { PERMISSIONS, isSystemPermission } from '../../config/permissions'
+import { getRoleLabel } from '../../layers/users/utils/ui-helpers'
+import { usePermissionsStore } from '../../stores/permissions'
 
 // 页面元数据
 definePageMeta({

@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   // 提取路径和查询参数
   const url = event.node.req.url || ''
   const [path, queryString] = url.split('?')
-  const cleanPath = path.replace(/^\/api\/v1/, '') || ''
+  const cleanPath = (path || '').replace(/^\/api\/v1/, '') || ''
   
   // 构建完整的后端URL
   const targetUrl = `${apiBase}${cleanPath}${queryString ? `?${queryString}` : ''}`

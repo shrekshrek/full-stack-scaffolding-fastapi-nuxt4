@@ -1,5 +1,5 @@
 import 'next-auth'
-import type { User as AppUser } from '~/types/user'
+import type { User as AppUser } from './types/user'
 
 declare module 'next-auth' {
   /**

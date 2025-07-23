@@ -4,7 +4,8 @@
  * 支持细粒度权限检查，遵循KISS原则，专注核心功能
  */
 
-import { PERMISSIONS, isSystemPermission } from '~/config/permissions'
+import { PERMISSIONS, isSystemPermission } from '../../config/permissions'
+import { usePermissionsStore } from '../../stores/permissions'
 
 export const usePermissions = () => {
   // 在服务端渲染期间，返回安全的默认值
@@ -74,7 +75,7 @@ export const usePermissions = () => {
     }
     
     // 检查用户的任一角色是否拥有该权限
-    return currentUserRoles.value.some(role => 
+    return currentUserRoles.value.some((role: string | { name: string }) => 
       permissionsStore.hasRolePermission(typeof role === 'string' ? role : role.name, permission)
     )
   }

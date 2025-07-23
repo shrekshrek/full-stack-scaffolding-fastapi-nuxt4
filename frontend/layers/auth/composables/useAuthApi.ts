@@ -3,8 +3,8 @@
  * 基于 useApi 核心工具，符合前端开发规范
  */
 
-import type { User, UserCreate } from '~/types/user'
-import type { Token, Msg, PasswordResetRequest, PasswordReset } from '~/types/auth'
+import type { User, UserCreate } from '../../../types/user'
+import type { Token, Msg, PasswordResetRequest, PasswordReset } from '../../../types/auth'
 
 export const useAuthApi = () => {
   const { apiRequest, showSuccess } = useApi()

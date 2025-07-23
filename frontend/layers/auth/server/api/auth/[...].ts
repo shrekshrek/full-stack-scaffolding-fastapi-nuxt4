@@ -3,8 +3,8 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import type { Session } from 'next-auth'
 import type { JWT } from 'next-auth/jwt'
 import { z } from 'zod'
-import type { User } from '~/types/user'
-import type { Token } from '~/types/auth'
+import type { User } from '../../../../../types/user'
+import type { Token } from '../../../../../types/auth'
 
 const runtimeConfig = useRuntimeConfig()
 

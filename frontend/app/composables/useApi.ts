@@ -44,7 +44,7 @@ export const useApi = () => {
       if (typeof errorObj.data.detail === 'string') {
         message = errorObj.data.detail
       } else if (Array.isArray(errorObj.data.detail) && errorObj.data.detail.length > 0) {
-        message = errorObj.data.detail[0].msg
+        message = errorObj.data.detail[0]?.msg || message
       }
     }
     

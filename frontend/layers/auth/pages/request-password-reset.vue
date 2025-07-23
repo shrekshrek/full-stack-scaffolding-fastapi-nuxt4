@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthApi } from '~/layers/auth/composables/useAuthApi';
+import { useAuthApi } from '../composables/useAuthApi';
 
 const { requestPasswordReset } = useAuthApi();
 const loading = ref(false);

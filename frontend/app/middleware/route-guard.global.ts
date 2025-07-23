@@ -5,7 +5,7 @@
  * 遵循 Nuxt 3 最佳实践：简洁、高效、可维护
  */
 
-import { getRoutePermission, checkRoutePermission, DEFAULT_REDIRECT_ROUTES, AuthRequirement } from '~/config/routes'
+import { getRoutePermission, checkRoutePermission, DEFAULT_REDIRECT_ROUTES, AuthRequirement } from '../../config/routes'
 
 export default defineNuxtRouteMiddleware((to) => {
   // 跳过服务端渲染时的检查（避免性能问题）
@@ -68,7 +68,7 @@ export default defineNuxtRouteMiddleware((to) => {
   // 类型转换：UserRead -> UserInfo
   const userInfo = user ? {
     id: user.id,
-    roles: user.roles.map(role => typeof role === 'string' ? role : role.name),
+    roles: user.roles.map((role: string | { name: string }) => typeof role === 'string' ? role : role.name),
     username: user.username,
     email: user.email,
     created_at: user.created_at,
