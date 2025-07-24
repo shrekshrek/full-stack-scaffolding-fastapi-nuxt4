@@ -10,7 +10,7 @@ const state = reactive({
 });
 
 const validate = (state: { email: string }) => {
-  const errors = []
+  const errors: Array<{ path: string; message: string }> = []
   if (!state.email) errors.push({ path: 'email', message: '邮箱地址不能为空' })
   if (state.email && !state.email.includes('@')) errors.push({ path: 'email', message: '请输入有效的邮箱地址' })
   return errors

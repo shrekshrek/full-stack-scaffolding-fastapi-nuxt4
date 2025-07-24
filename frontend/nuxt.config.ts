@@ -69,4 +69,20 @@ export default defineNuxtConfig({
     // The module is enabled.
     isEnabled: true,
   },
+  
+  // 自动导入配置 - 解决 Nuxt 4 layers 自动导入问题
+  imports: {
+    // 确保全局启用自动导入
+    autoImport: true,
+    // 全局可用
+    global: true,
+    // 添加额外的目录扫描
+    dirs: [
+      // 扫描所有 layers 的 composables 和 stores
+      './layers/*/composables/**',
+      './layers/*/stores/**',
+      './app/composables/**',
+      './stores/**'
+    ]
+  },
 })

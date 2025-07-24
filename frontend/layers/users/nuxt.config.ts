@@ -1,7 +1,9 @@
 export default defineNuxtConfig({
-  // 只配置必要的模块和导入
+  // 自动导入配置
   imports: {
-    dirs: ['composables/**', 'stores/**', 'types/**']
+    dirs: ['composables/**', 'stores/**', 'types/**'],
+    // 确保 Vue 和 Nuxt 核心函数在 layer 中可用
+    autoImport: true
   },
   // 组件自动导入（仅在本layer内可用）
   components: [

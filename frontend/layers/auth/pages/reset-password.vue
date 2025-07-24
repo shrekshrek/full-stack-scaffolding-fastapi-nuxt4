@@ -14,7 +14,7 @@ const state = reactive({
 });
 
 const validate = (state: { password: string; passwordConfirm: string }) => {
-  const errors = []
+  const errors: Array<{ path: string; message: string }> = []
   if (!state.password) errors.push({ path: 'password', message: '密码不能为空' })
   if (!state.passwordConfirm) errors.push({ path: 'passwordConfirm', message: '确认密码不能为空' })
   if (state.password && state.password.length < 8) errors.push({ path: 'password', message: '密码至少需要8个字符' })
