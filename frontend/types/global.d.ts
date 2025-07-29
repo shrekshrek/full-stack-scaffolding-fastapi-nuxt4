@@ -1,10 +1,4 @@
-interface ConfirmOptions {
-  title?: string
-  message: string
-  confirmText?: string
-  cancelText?: string
-  type?: 'warning' | 'error' | 'info' | 'success'
-}
+import type { ConfirmOptions } from './common'
 
 declare module '#app' {
   interface NuxtApp {

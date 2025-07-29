@@ -1,40 +1,10 @@
-// 角色类型定义
-export interface Role {
-  id: number;
-  name: string;
-  display_name: string;
-  description?: string;
-  is_system: boolean;
-}
+// 重新导出核心用户类型（来自根级别类型定义）
+export type { User, UserCreate, UserUpdate, Role } from '../../../types/user'
 
-// 用户相关类型定义
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  roles: string[]; // 用户的角色名称数组（与后端UserRead schema一致）
-  created_at: string;
-  updated_at: string;
-}
+// 重新导出通用类型（来自根级别类型定义）
+export type { PaginationParams, UIColor } from '../../../types/common'
 
-export interface UserCreate {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface UserUpdate {
-  username?: string;
-  email?: string;
-  password?: string;
-}
-
-// 分页相关类型
-export interface PaginationParams {
-  page?: number;
-  page_size?: number;
-}
-
+// 用户管理模块特有的响应类型
 export interface UserListResponse {
   items: User[];
   total: number;
@@ -42,7 +12,4 @@ export interface UserListResponse {
   page_size: number;
 }
 
-// @nuxt/ui 兼容的颜色类型
-export type UIColor = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral' 
-
-// 用户相关的特定类型可以在这里定义 
+// 用户管理模块的特定类型可以在这里定义 

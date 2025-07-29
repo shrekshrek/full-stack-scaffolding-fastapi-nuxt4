@@ -1,27 +1,31 @@
-import 'next-auth'
-import type { User as AppUser } from './user'
+import type { User as AppUser } from '~/types/user'
 
 declare module 'next-auth' {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
   interface Session {
-    user: AppUser;
-    accessToken?: string
-  }
-
-  interface User {
-    id: string
-    accessToken?: string
+    user: AppUser
+    accessToken: string
   }
 }
 
 declare module 'next-auth/jwt' {
-  /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
   interface JWT {
-    /** OpenID ID Token */
-    idToken?: string;
-    accessToken: string;
-    user: AppUser;
+    user: AppUser
+    accessToken: string
+  }
+}
+
+// 扩展 NextAuth 的类型定义
+declare module '#auth' {
+  interface Session {
+    user: AppUser
+    accessToken: string
+  }
+}
+
+// JWT 类型扩展
+declare module '#auth/jwt' {
+  interface JWT {
+    user: AppUser
+    accessToken: string
   }
 } 

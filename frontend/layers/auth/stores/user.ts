@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { UserProfile } from '../../../types/user'
+import type { UserProfile, User } from '../../../types/user'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -29,12 +29,11 @@ export const useUserStore = defineStore('user', {
       try {
         // 直接使用getMe，它内部会检查认证状态
         const { getMe } = useAuthApi()
-        const data = await getMe()
+        const data: User = await getMe()
         
         // 转换为 UserProfile 格式
         this.profile = {
           ...data,
-          roles: data.roles.map(role => typeof role === 'string' ? role : role.name),
           avatarUrl: null,
         }
         

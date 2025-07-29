@@ -1,4 +1,8 @@
 // RBAC 相关类型定义
+
+// 重新导出通用类型（来自根级别类型定义）
+export type { PaginationParams, PaginatedResponse } from '../../../types/common'
+
 export interface Role {
   id: number
   name: string
@@ -61,21 +65,6 @@ export interface PermissionUpdate {
   resource?: string
   action?: string
   description?: string
-}
-
-// 分页相关类型
-export interface PaginationParams {
-  page?: number
-  page_size?: number
-  search?: string
-}
-
-export interface PaginationResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  page_size: number
-  total_pages: number
 }
 
 // API 响应类型

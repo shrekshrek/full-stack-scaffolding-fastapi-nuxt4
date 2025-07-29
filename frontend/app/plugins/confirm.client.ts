@@ -5,13 +5,7 @@
  * 配合ConfirmModal组件使用，提供完整的确认/取消功能
  */
 
-interface ConfirmOptions {
-  title?: string
-  message: string
-  confirmText?: string
-  cancelText?: string
-  type?: 'warning' | 'error' | 'info' | 'success'
-}
+import type { ConfirmOptions } from '../../types/common'
 
 declare global {
   interface Window {
