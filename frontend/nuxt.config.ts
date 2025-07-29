@@ -69,7 +69,12 @@ export default defineNuxtConfig({
     // The module is enabled.
     isEnabled: true,
   },
-  
+
+  // TypeScript configuration
+  typescript: {
+    typeCheck: true
+  },
+
   // 自动导入配置 - 解决 Nuxt 4 layers 自动导入问题
   imports: {
     // 确保全局启用自动导入

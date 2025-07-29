@@ -1,17 +1,18 @@
 import 'next-auth'
-import type { User as AppUser } from './types/user'
+import type { User as AppUser } from './user'
 
 declare module 'next-auth' {
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
   interface Session {
-    accessToken: string;
-    user: AppUser;
+    user: User
+    accessToken?: string
   }
 
   interface User {
-    accessToken?: string;
+    id: string
+    accessToken?: string
   }
 }
 

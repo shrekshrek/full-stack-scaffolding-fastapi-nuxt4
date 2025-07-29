@@ -1,3 +1,5 @@
+import { defineNuxtConfig } from 'nuxt/config'
+
 export default defineNuxtConfig({
   // RBAC 权限管理模块
   // 提供角色和权限的管理功能
