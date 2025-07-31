@@ -5,11 +5,11 @@
       <div class="text-center text-white">
         <h1 class="text-4xl font-bold mb-4">全栈项目脚手架</h1>
         <p class="text-xl text-blue-100 mb-6">
-          基于 Nuxt 3 + FastAPI 的现代化全栈开发解决方案
+          基于 Nuxt 4 + FastAPI 的现代化全栈开发解决方案
         </p>
         <div class="flex flex-wrap gap-2 justify-center">
           <UBadge color="neutral" variant="solid" size="lg" class="bg-white/20 backdrop-blur-sm text-white">
-            🚀 Nuxt 3
+            🚀 Nuxt 4
           </UBadge>
           <UBadge color="neutral" variant="solid" size="lg" class="bg-white/20 backdrop-blur-sm text-white">
             ⚡ FastAPI
@@ -136,7 +136,7 @@ const permissions = usePermissions();
 useHead({
   title: '全栈项目脚手架',
   meta: [
-    { name: 'description', content: '基于 Nuxt 3 + FastAPI 的现代化全栈开发解决方案' }
+    { name: 'description', content: '基于 Nuxt 4 + FastAPI 的现代化全栈开发解决方案' }
   ]
 });
 </script>
