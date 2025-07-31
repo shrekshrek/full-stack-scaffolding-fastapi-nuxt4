@@ -10,14 +10,14 @@ export default defineNuxtConfig({
   css: ['./app/assets/css/main.css'],
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
-  
-  // Vite 配置
+
+  // Vite 配置优化
   vite: {
     optimizeDeps: {
       exclude: ['zod']
     }
   },
-  
+
   // 运行时配置
   runtimeConfig: {
     // 私有配置（仅服务端可用）
