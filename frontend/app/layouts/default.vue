@@ -16,24 +16,35 @@
           <!-- 桌面端导航 -->
           <div class="hidden lg:flex items-center gap-4">
             <!-- 颜色模式切换按钮 -->
-            <UButton
-              variant="ghost"
-              size="sm"
-              :icon="
-                $colorMode.value === 'dark'
-                  ? 'i-heroicons-sun'
-                  : 'i-heroicons-moon'
-              "
-              :aria-label="
-                $colorMode.value === 'dark'
-                  ? '切换到浅色模式'
-                  : '切换到深色模式'
-              "
-              @click="
-                $colorMode.preference =
-                  $colorMode.value === 'dark' ? 'light' : 'dark'
-              "
-            />
+            <ClientOnly>
+              <UButton
+                variant="ghost"
+                size="sm"
+                :icon="
+                  $colorMode.value === 'dark'
+                    ? 'i-heroicons-sun'
+                    : 'i-heroicons-moon'
+                "
+                :aria-label="
+                  $colorMode.value === 'dark'
+                    ? '切换到浅色模式'
+                    : '切换到深色模式'
+                "
+                @click="
+                  $colorMode.preference =
+                    $colorMode.value === 'dark' ? 'light' : 'dark'
+                "
+              />
+              <template #fallback>
+                <!-- SSR 时显示一个静态的月亮图标作为默认 -->
+                <UButton
+                  variant="ghost"
+                  size="sm"
+                  icon="i-heroicons-moon"
+                  aria-label="主题切换"
+                />
+              </template>
+            </ClientOnly>
 
             <template v-if="status === 'authenticated'">
               <NuxtLink
@@ -104,24 +115,35 @@
           <!-- 移动端导航 -->
           <div class="flex lg:hidden items-center gap-3">
             <!-- 主题切换按钮 -->
-            <UButton
-              variant="ghost"
-              size="sm"
-              :icon="
-                $colorMode.value === 'dark'
-                  ? 'i-heroicons-sun'
-                  : 'i-heroicons-moon'
-              "
-              :aria-label="
-                $colorMode.value === 'dark'
-                  ? '切换到浅色模式'
-                  : '切换到深色模式'
-              "
-              @click="
-                $colorMode.preference =
-                  $colorMode.value === 'dark' ? 'light' : 'dark'
-              "
-            />
+            <ClientOnly>
+              <UButton
+                variant="ghost"
+                size="sm"
+                :icon="
+                  $colorMode.value === 'dark'
+                    ? 'i-heroicons-sun'
+                    : 'i-heroicons-moon'
+                "
+                :aria-label="
+                  $colorMode.value === 'dark'
+                    ? '切换到浅色模式'
+                    : '切换到深色模式'
+                "
+                @click="
+                  $colorMode.preference =
+                    $colorMode.value === 'dark' ? 'light' : 'dark'
+                "
+              />
+              <template #fallback>
+                <!-- SSR 时显示一个静态的月亮图标作为默认 -->
+                <UButton
+                  variant="ghost"
+                  size="sm"
+                  icon="i-heroicons-moon"
+                  aria-label="主题切换"
+                />
+              </template>
+            </ClientOnly>
 
             <!-- 用户头像（已认证时） -->
             <UAvatar
