@@ -1,5 +1,5 @@
 # --- Build Stage ---
-# Use a Node.js version that is compatible with Nuxt 3
+# Use a Node.js version that is compatible with Nuxt 4
 FROM node:18-slim AS build-stage
 
 # Set working directory
@@ -30,11 +30,11 @@ WORKDIR /app
 # Copy the built output from the build stage
 COPY --from=build-stage /app/.output ./.output
 
-# Nuxt 3 starts its own server, so we only need to copy the output.
+# Nuxt 4 starts its own server, so we only need to copy the output.
 # We don't need the full package.json or node_modules in the final image.
 
-# Expose the port Nuxt 3 runs on (default is 3000)
+# Expose the port Nuxt 4 runs on (default is 3000)
 EXPOSE 3000
 
-# Command to start the Nuxt 3 server in production mode
+# Command to start the Nuxt 4 server in production mode
 CMD ["node", ".output/server/index.mjs"] 

@@ -22,7 +22,7 @@
 
 ### 1.1. 技术栈
 
--   **核心框架**: [Nuxt 3](https://nuxt.com/)
+-   **核心框架**: [Nuxt 4](https://nuxt.com/)
 -   **UI 库**: [@nuxt/ui v3](https://ui.nuxt.com/) (基于 Tailwind CSS)
 -   **状态管理**: [Pinia](https://pinia.vuejs.org/)
 -   **认证**: [@sidebase/nuxt-auth](https://sidebase.io/nuxt-auth/getting-started)
@@ -34,7 +34,7 @@
 -   **Nuxt Layers**: 采用官方推荐的 Layers 模式实现前端的模块化和领域驱动设计 (DDD)，与后端架构保持对称。
 -   **配置驱动**: 路由权限、导航菜单等核心功能由 `config/` 目录下的配置文件驱动，实现了逻辑与配置的分离。
 -   **统一 API 通信**: 所有后端 API 请求都通过全局的 `composables/useApi.ts` 进行，内置了统一的错误处理、认证集成和加载状态管理。
--   **SSR 优先**: 遵循 Nuxt 3 的服务端渲染 (SSR) 最佳实践，通过 `useApiData` 等组合式函数确保高效和 SEO 友好的数据获取。
+-   **SSR 优先**: 遵循 Nuxt 4 的服务端渲染 (SSR) 最佳实践，通过 `useApiData` 等组合式函数确保高效和 SEO 友好的数据获取。
 -   **类型安全**: 全面使用 TypeScript，从 API 数据到组件属性，确保端到端的类型安全。
 
 ---

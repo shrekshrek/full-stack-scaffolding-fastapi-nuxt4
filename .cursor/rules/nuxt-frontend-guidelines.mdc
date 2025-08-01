@@ -10,7 +10,7 @@ alwaysApply: true
 
 ## 1. 核心技术与架构
 
-- **核心框架**: Nuxt 3
+- **核心框架**: Nuxt 4
 - **架构模式**: Nuxt Layers。业务代码按领域封装在 `layers/` 目录中 (e.g., `layers/auth`, `layers/rbac`)。
 - **UI 库**: `@nuxt/ui v3`。复用性UI组件应放入 `layers/ui-kit`。
 - **状态管理**: Pinia。Store 按业务领域存放在 Layer 的 `stores/` 目录。

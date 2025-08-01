@@ -1,6 +1,6 @@
-# 全栈脚手架：FastAPI + Nuxt 3
+# 全栈脚手架：FastAPI + Nuxt 4
 
-这是一个功能强大、开箱即用的全栈Web应用脚手架，基于 **FastAPI (后端)** 和 **Nuxt 3 (前端)** 构建。它旨在为需要快速启动新项目的开发者提供一个坚实、现代化的起点。
+这是一个功能强大、开箱即用的全栈Web应用脚手架，基于 **FastAPI (后端)** 和 **Nuxt 4 (前端)** 构建。它旨在为需要快速启动新项目的开发者提供一个坚实、现代化的起点。
 
 [![在 Gitpod 中打开](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/shrekshrek/full-stack-scaffolding-fastapi-nuxt3)
 
@@ -10,7 +10,7 @@
 
 -   **现代化技术栈**:
     -   **后端**: FastAPI, PostgreSQL, SQLAlchemy (异步), Celery, Redis
-    -   **前端**: Nuxt 3, Vue 3, Pinia, `@nuxt/ui`, Tailwind CSS
+    -   **前端**: Nuxt 4, Vue 3, Pinia, `@nuxt/ui`, Tailwind CSS
 -   **完全容器化**: 使用 Docker 和 Docker Compose 提供一致、可复现的开发与生产环境。
 -   **动态RBAC权限系统**:
     -   通过UI界面动态管理角色和权限，无需修改代码。

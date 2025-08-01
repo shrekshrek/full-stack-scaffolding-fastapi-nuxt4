@@ -20,7 +20,7 @@
 │   ├── 用户权限API     # /api/v1/rbac/me/permissions
 │   └── 数据库模型      # Role, Permission, RolePermission
 │
-├── 前端 (Nuxt 3)
+├── 前端 (Nuxt 4)
 │   ├── 权限管理页面    # /rbac/permissions
 │   ├── 角色管理页面    # /rbac/roles
 │   ├── 权限检查器      # usePermissions()

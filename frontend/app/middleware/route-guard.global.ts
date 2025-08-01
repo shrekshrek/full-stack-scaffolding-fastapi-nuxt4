@@ -2,7 +2,7 @@
  * 统一路由守卫中间件
  * 
  * 整合认证和权限检查，基于配置文件自动处理所有路由的安全控制
- * 遵循 Nuxt 3 最佳实践：简洁、高效、可维护
+ * 遵循 Nuxt 4 最佳实践：简洁、高效、可维护
  */
 
 import { getRoutePermission, checkRoutePermission, DEFAULT_REDIRECT_ROUTES, AuthRequirement } from '../../config/routes'
