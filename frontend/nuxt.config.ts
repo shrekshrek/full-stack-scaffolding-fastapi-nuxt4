@@ -50,25 +50,23 @@ export default defineNuxtConfig({
     // 业务layer组件都在各自layer内部使用
   ],
   modules: [
-    '@nuxt/ui',
-    '@nuxtjs/color-mode',
+    ['@nuxt/ui', {
+      // 禁用字体功能以避免网络连接问题
+      fonts: false,
+      colorMode: {
+        preference: 'light', // 默认浅色模式
+        fallback: 'light',   // 当检测不到系统偏好时使用浅色
+        classSuffix: '',     // 使用 'dark' 类而不是 'dark-mode'
+        storageKey: 'nuxt-color-mode'
+      }
+    }],
     '@nuxt/eslint',
     // '@nuxt/image',
     '@nuxt/icon',
     '@pinia/nuxt',
-    '@sidebase/nuxt-auth'
-  ],
-  ui: {
-    fonts: false,
-  },
-  colorMode: {
-    preference: 'light', // 默认浅色模式
-    fallback: 'light',   // 当检测不到系统偏好时使用浅色
-    classSuffix: '',     // 使用 'dark' 类而不是 'dark-mode'
-    storageKey: 'nuxt-color-mode'
-  },
-  auth: {
-    // The module is enabled.
-    isEnabled: true,
-  }
+    ['@sidebase/nuxt-auth', {
+      // The module is enabled.
+      isEnabled: true,
+    }]
+  ]
 })
