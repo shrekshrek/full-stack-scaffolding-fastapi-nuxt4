@@ -79,7 +79,7 @@
             <UPagination
               v-model:page="currentPage"
               :total="total"
-              :page-size="pageSize"
+              :items-per-page="pageSize"
               :sibling-count="2"
               show-first
               show-last
