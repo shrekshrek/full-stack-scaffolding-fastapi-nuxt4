@@ -399,6 +399,14 @@ import { PERMISSIONS, isSystemPermission } from '../../config/permissions'
 import { getRoleLabel } from '../../layers/users/utils/ui-helpers'
 import { usePermissionsStore } from '../../stores/permissions'
 
+// 开发环境检查 - 生产环境下重定向到首页
+if (process.env.NODE_ENV === 'production') {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Page Not Found'
+  })
+}
+
 // 页面元数据
 definePageMeta({
   title: '开发测试',
@@ -458,13 +466,23 @@ const showTestMessage = (message: string, type: 'success' | 'error' | 'info' = '
 const testLogin = async () => {
   loginLoading.value = true
   try {
-    const result = await signIn('credentials', {
+    // 修正：直接调用 signIn，不使用其返回值来判断错误
+    await signIn('credentials', {
       username: 'admin',
       password: 'admin123',
       redirect: false
     })
-    console.log('登录结果:', result)
-    showTestMessage('登录成功！用户信息和权限已更新', 'success')
+    
+    // signIn 成功后，useAuth() 的状态会更新
+    const { status } = useAuth()
+    
+    // 检查认证状态来判断是否成功
+    if (status.value === "authenticated") {
+      console.log('登录成功，认证状态已更新')
+      showTestMessage('登录成功！用户信息和权限已更新', 'success')
+    } else {
+      throw new Error("Authentication failed")
+    }
   } catch (error) {
     console.error('登录失败:', error)
     showTestMessage('登录失败，请检查用户名和密码', 'error')
