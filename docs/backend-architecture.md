@@ -22,8 +22,11 @@
 ## 1. 系统概览
 
 ### 1.1 技术栈
-- **框架**: FastAPI 0.100+
-- **数据库**: PostgreSQL + SQLAlchemy (异步ORM)
+- **核心框架**: FastAPI
+- **数据库**: PostgreSQL + SQLAlchemy (ORM) + Alembic (迁移)
+- **包管理**: Poetry
+- **异步任务**: Celery + Redis
+- **部署**: Docker
 - **认证**: JWT + OAuth2
 - **权限**: RBAC (Role-Based Access Control 基于角色的访问控制)
 - **任务队列**: Celery + Redis

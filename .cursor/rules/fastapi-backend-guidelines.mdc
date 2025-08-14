@@ -15,7 +15,7 @@ alwaysApply: true
 - **数据库**: PostgreSQL + SQLAlchemy (ORM) + Alembic (迁移)
 - **异步任务**: Celery + Redis
 - **LLM**: LangChain `v0.3+`
-- **包管理**: PDM
+- **包管理**: Poetry
 
 
 ## 2. 关键编码实践

@@ -23,13 +23,13 @@
     "fe:add": "pnpm --prefix frontend add",
     "fe:dev": "pnpm --prefix frontend dev",
     "//--- Backend (FastAPI) ---": "",
-    "be:install": "docker-compose exec backend pdm install",
-    "be:add": "docker-compose exec backend pdm add",
-    "be:shell": "docker-compose exec backend /bin/bash",
+    "be:install": "docker-compose exec backend poetry install",
+    "be:add": "docker-compose exec backend poetry add",
+    "be:shell": "docker-compose exec backend poetry shell",
     "be:db:cli": "docker-compose exec postgres-db psql -U postgres -d fastapi_db",
-    "be:migrate:up": "docker-compose exec backend pdm run alembic upgrade head",
-    "be:migrate:make": "docker-compose exec backend pdm run alembic revision --autogenerate -m",
-    "be:bootstrap": "docker-compose exec backend python scripts/bootstrap.py"
+    "be:migrate:up": "docker-compose exec backend poetry run alembic upgrade head",
+    "be:migrate:make": "docker-compose exec backend poetry run alembic revision --autogenerate -m",
+    "be:bootstrap": "docker-compose exec backend poetry run python scripts/bootstrap.py"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
