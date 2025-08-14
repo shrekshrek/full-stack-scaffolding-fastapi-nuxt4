@@ -28,7 +28,7 @@ alwaysApply: true
 ### 4. 后端操作 (`/backend`)
 
 -   **路径**: 所有后端相关的操作，工作目录**必须**是 `/backend`。
--   **包管理器**: **必须**使用 `pdm` 进行依赖管理。
+-   **包管理器**: **必须**使用 `poetry` 进行依赖管理。
 -   **快捷命令**: 优先使用根目录 `package.json` 中定义的 `be:*` 脚本，例如：
     -   安装所有依赖: `pnpm be:install`
     -   添加新依赖: `pnpm be:add <package-name>`

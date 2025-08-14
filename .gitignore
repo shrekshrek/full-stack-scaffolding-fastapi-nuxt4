@@ -1,6 +1,7 @@
 # Environments
 .env*
 !.env.example
+backend/.env.production
 
 # IDE / Editor specific
 .vscode/
@@ -11,34 +12,38 @@
 .DS_Store
 __MACOSX
 
-# Dependencies
+# Dependencies / Lock files
 node_modules/
+# poetry.lock should be committed, but ignore other managers' lock files
+pdm.lock
+Pipfile.lock
 
 # --- Frontend (Nuxt.js) ---
-/.nuxt/
-frontend/.nuxt/
-frontend/.output/
-frontend/dist/
+.nuxt/
+.output/
+dist/
 
-# --- Backend (Python/PDM) ---
-backend/.venv/
-backend/.py[cod]
-backend/__pycache__/
-backend/.mypy_cache/
-backend/.pytest_cache/
-backend/.ruff_cache/
-backend/.pdm-python
+# --- Python / Backend ---
+# Virtual Environments
+.venv
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
 
-# Python
+# Caches and artifacts
 __pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 *.py[cod]
 *$py.class
 *.so
-.Python
+
+# Build outputs
 build/
 develop-eggs/
-dist/
-downloads/
 eggs/
 .eggs/
 lib/
@@ -53,15 +58,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtualenv
-.venv
-venv/
-ENV/
-env/
-env.bak/
-venv.bak/
+# Testing artifacts
+test.db
+*.sqlite
+*.sqlite3
 
-# Testing
-backend/test.db
-.pytest_cache/
-backend/.env.production
+# Tool specific configs
+.pdm-python
+.pdm.toml

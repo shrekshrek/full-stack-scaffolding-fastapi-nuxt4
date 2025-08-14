@@ -19,11 +19,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: prod-backend
-    env_file:
-      - ./backend/.env.production
-    command: pdm run gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 src.main:app
-    expose:
-      - 8000
+    command: poetry run gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 src.main:app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/.env.production:/app/.env.production:ro
     depends_on:
       - postgres_db
       - redis

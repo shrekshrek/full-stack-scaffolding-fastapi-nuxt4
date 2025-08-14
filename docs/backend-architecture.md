@@ -31,7 +31,7 @@
 - **权限**: RBAC (Role-Based Access Control 基于角色的访问控制)
 - **任务队列**: Celery + Redis
 - **迁移**: Alembic
-- **包管理**: PDM
+- **包管理**: Poetry
 
 ### 1.2 架构特点
 - **领域驱动设计**: 按业务领域划分模块
