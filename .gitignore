@@ -22,6 +22,12 @@ Pipfile.lock
 .nuxt/
 .output/
 dist/
+.nitro/
+.cache/
+
+# Log files
+logs
+*.log
 
 # --- Python / Backend ---
 # Virtual Environments
