@@ -1,7 +1,12 @@
 # Environments
-.env*
+.env
+.env.local
+.env.development
+.env.test
+.env.production
 !.env.example
-backend/.env.production
+!frontend/.env.example
+!backend/.env.production.example
 
 # IDE / Editor specific
 .vscode/
