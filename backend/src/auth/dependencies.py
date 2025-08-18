@@ -8,7 +8,7 @@ from src.auth.blacklist import is_token_blacklisted
 from src.auth.security import decode_and_verify_token
 from src.config import settings
 from src.database import get_async_db
-from src.redis import get_redis_client
+from src.redis_client import get_redis_client
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/auth/token", auto_error=False)
 

@@ -1,7 +1,6 @@
 import pytest
 import random
 from httpx import AsyncClient
-from sqlalchemy.orm import Session
 
 pytestmark = pytest.mark.asyncio
 

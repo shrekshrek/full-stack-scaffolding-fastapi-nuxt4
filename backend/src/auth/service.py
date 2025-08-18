@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from src.auth import models, schemas
 from src.auth.exceptions import UserAlreadyExistsException
-from src.auth.security import verify_password, pwd_context, create_access_token
+from src.auth.security import verify_password, pwd_context
 
 
 async def get_user_by_username(db: AsyncSession, username: str):

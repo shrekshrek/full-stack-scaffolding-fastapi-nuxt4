@@ -1,16 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import schemas, service, models
 from src.auth.dependencies import get_current_user
 from src.database import get_async_db
+from src.rate_limit import auth_limiter, password_reset_limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/register", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED, summary="Register new user")
-async def register(user: schemas.UserCreate, db: AsyncSession = Depends(get_async_db)):
+@auth_limiter
+async def register(request: Request, user: schemas.UserCreate, db: AsyncSession = Depends(get_async_db)):
     """
     Register a new user.
     """
@@ -35,7 +37,8 @@ async def register(user: schemas.UserCreate, db: AsyncSession = Depends(get_asyn
 
 
 @router.post("/token", response_model=schemas.Token, status_code=status.HTTP_200_OK, summary="User login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_async_db)):
+@auth_limiter
+async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_async_db)):
     """
     Login and get an access token.
     """
@@ -62,19 +65,20 @@ async def logout(current_user: schemas.UserRead = Depends(get_current_user)):
 
 
 @router.post("/request-password-reset", response_model=schemas.Msg, status_code=status.HTTP_200_OK, summary="Request password reset")
+@password_reset_limiter
 async def request_password_reset(
-    request: schemas.PasswordResetRequest, db: AsyncSession = Depends(get_async_db)
+    request: Request, reset_request: schemas.PasswordResetRequest, db: AsyncSession = Depends(get_async_db)
 ):
     """
     Request a password reset. Sends an email with a reset token.
     """
-    token = await service.create_password_reset_token(db=db, email=request.email)
+    token = await service.create_password_reset_token(db=db, email=reset_request.email)
     
     # TODO: 发送密码重置邮件 (暂时禁用)
     if token:
-        print(f"密码重置token生成: {request.email} -> {token}")
+        print(f"密码重置token生成: {reset_request.email} -> {token}")
         print(f"重置链接: http://localhost:3000/reset-password?token={token}")
-        # send_password_reset_email.delay(request.email, token)
+        # send_password_reset_email.delay(reset_request.email, token)
     
     # Always return a success message to prevent user enumeration.
     return {"msg": "If an account with that email exists, a password reset link has been sent."}

@@ -1,10 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 from typing import Optional
 from src.auth.schemas import UserRead
-from src.schemas import PaginatedResponse
+from src.schemas import CustomBaseModel, PaginatedResponse
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(CustomBaseModel):
     """用户更新模型"""
     username: Optional[str] = None
     email: Optional[EmailStr] = None

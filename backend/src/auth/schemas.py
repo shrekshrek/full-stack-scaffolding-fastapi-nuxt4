@@ -1,11 +1,12 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 from datetime import datetime
 from typing import List
+from src.schemas import CustomBaseModel
 
 
 # --- User Schemas ---
 
-class UserCreate(BaseModel):
+class UserCreate(CustomBaseModel):
     """
     Schema for user creation.
     Used for request body validation when creating a new user.
@@ -15,7 +16,7 @@ class UserCreate(BaseModel):
     password: str
 
 
-class UserRead(BaseModel):
+class UserRead(CustomBaseModel):
     """
     Schema for reading user information.
     Used for response bodies to avoid exposing sensitive data like password.
@@ -27,36 +28,33 @@ class UserRead(BaseModel):
     updated_at: datetime
     roles: List[str] = []  # 用户的角色名称列表
 
-    class Config:
-        from_attributes = True
-
 
 # --- Token Schemas ---
 
-class Token(BaseModel):
+class Token(CustomBaseModel):
     access_token: str
     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenData(CustomBaseModel):
     username: str | None = None
 
 
 # --- Password Reset Schemas ---
 
-class PasswordResetRequest(BaseModel):
+class PasswordResetRequest(CustomBaseModel):
     email: EmailStr
 
-class PasswordReset(BaseModel):
+class PasswordReset(CustomBaseModel):
     token: str
     new_password: str
 
 
-class ChangePassword(BaseModel):
+class ChangePassword(CustomBaseModel):
     """修改密码请求模型"""
     current_password: str
     new_password: str
 
-class Msg(BaseModel):
+class Msg(CustomBaseModel):
     msg: str
 

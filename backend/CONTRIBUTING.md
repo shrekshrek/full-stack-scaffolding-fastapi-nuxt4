@@ -51,6 +51,7 @@ backend/
 │   ├── exceptions.py     # 全局异常类定义
 │   ├── middleware.py     # 全局中间件（异常处理、日志等）
 │   ├── pagination.py     # 分页工具
+│   ├── utils.py          # 通用工具函数（CPU密集型任务处理、异步包装器等）
 │   └── main.py           # FastAPI 应用入口
 ├── tests/                # 测试目录
 │   ├── conftest.py       # 测试配置和fixtures
@@ -79,11 +80,30 @@ backend/
 
 #### 异步优先
 - **I/O 密集型任务**: 必须使用 `async def` 定义路由和服务函数。例如：数据库查询、外部 API 调用。
-- **CPU 密集型任务**: 如果必须执行同步的、耗时的计算，使用 `fastapi.concurrency.run_in_threadpool` 在线程池中运行，避免阻塞事件循环。
+- **CPU 密集型任务**: 如果必须执行同步的、耗时的计算，使用 `src.utils` 中的工具函数（如 `run_cpu_bound_task` 或 `@async_wrap` 装饰器），它们内部使用 `run_in_threadpool` 避免阻塞事件循环。
 
 #### SQL 优先，Pydantic 其次
 - **复杂查询**: 优先使用 SQL (或 SQLAlchemy Core/ORM) 在数据库层面完成复杂的 `JOIN`、聚合和数据筛选。数据库通常比 Python 更高效。
 - **数据校验**: Pydantic `schemas` 主要负责 API 边界的数据校验和序列化，而不是复杂的业务逻辑。
+
+#### Pydantic 模型规范
+- **基类继承**: 所有 Pydantic 模型**必须**继承自 `src.schemas.CustomBaseModel`，而不是直接继承 `pydantic.BaseModel`
+- **配置方式**: 使用 Pydantic v2 的 `ConfigDict`，不使用旧版的 `Config` 内部类
+- **统一配置**: `CustomBaseModel` 提供了统一的配置，包括：
+  - `from_attributes=True` - 支持从 ORM 模型创建
+  - `use_enum_values=True` - 使用枚举值而非名称
+  - `validate_assignment=True` - 赋值时验证
+  - 自定义 JSON 编码器 - datetime 和 Decimal 的序列化
+- **示例**:
+```python
+from src.schemas import CustomBaseModel
+from pydantic import Field
+
+class UserResponse(CustomBaseModel):
+    id: int
+    name: str
+    email: str = Field(..., description="用户邮箱")
+```
 
 #### 依赖注入 (Dependency Injection)
 - **解耦和复用**: 将可重用的逻辑（如获取当前用户、数据库会话）封装在依赖项中，并在多个端点中复用。
@@ -97,10 +117,10 @@ backend/
 - **标准错误处理**: 使用 `HTTPException` 处理业务错误，让全局中间件统一处理
 
 ```python
-from pydantic import BaseModel
+from src.schemas import CustomBaseModel
 from fastapi import HTTPException, status
 
-class UserResponse(BaseModel):
+class UserResponse(CustomBaseModel):
     id: int
     name: str
     email: str
