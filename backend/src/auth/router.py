@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import schemas, service, models
+from src.auth import schemas, service, models, security
 from src.auth.dependencies import get_current_user
 from src.database import get_async_db
 from src.rate_limit import auth_limiter, password_reset_limiter
@@ -50,7 +50,7 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = service.create_access_token(subject=user.username)
+    access_token = security.create_access_token(subject=user.username)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

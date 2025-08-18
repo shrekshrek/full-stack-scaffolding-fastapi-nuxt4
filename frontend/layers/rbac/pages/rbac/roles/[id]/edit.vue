@@ -76,7 +76,7 @@ const rbacApi = useRbacApi();
 const fetchRole = async () => {
   try {
     const response = await rbacApi.getRole(roleId.value);
-    role.value = response.data.value;
+    role.value = response.data.value ?? null;
   } catch (error) {
     console.error("获取角色详情失败:", error);
     

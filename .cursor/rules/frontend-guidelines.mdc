@@ -3,48 +3,78 @@ alwaysApply: true
 ---
 # Nuxt.js 前端开发核心规则
 
-**完整指南详见项目内的：[`frontend/CONTRIBUTING.md`](mdc:frontend/CONTRIBUTING.md)**
+详细规范见：`frontend/CONTRIBUTING.md`
 
-本规则为 AI 提供核心开发规范，确保代码生成的一致性。
+## 核心技术栈
+- **框架**: Nuxt 4
+- **架构**: Nuxt Layers (领域驱动设计)
+- **UI库**: @nuxt/ui v3（必须是v3版本）
+- **状态管理**: Pinia
+- **认证**: @sidebase/nuxt-auth
+- **图表**: ECharts（必须用ClientOnly包装）
 
+## 关键编码规范
 
-## 1. 核心技术与架构
+### 设计原则
+- **KISS原则**: 保持简单，避免过度工程化
+- **统一处理**: 使用封装好的工具确保代码一致性和可维护性
 
-- **核心框架**: Nuxt 4
-- **架构模式**: Nuxt Layers。业务代码按领域封装在 `layers/` 目录中 (e.g., `layers/auth`, `layers/rbac`)。
-- **UI 库**: `@nuxt/ui v3`。复用性UI组件应放入 `layers/ui-kit`。
-- **状态管理**: Pinia。Store 按业务领域存放在 Layer 的 `stores/` 目录。
-- **认证**: `@sidebase/nuxt-auth`。
-- **数据可视化**: `ECharts`。
+### API调用
+- **必须**使用 `composables/useApi.ts` 进行所有API通信
+- 客户端操作使用 `apiRequest()`
+- SSR数据获取使用 `useApiData()`
+- **禁止**直接使用原始 `$fetch` 或 `useFetch`
 
+### SSR注意事项
+- 动态内容**必须**使用 `<ClientOnly>` 包装
+- 提供有意义的 `fallback` 内容
+- 数据获取优先使用SSR友好的方法
+- 避免仅在 `onMounted` 中获取数据
 
-## 2. 关键编码实践
+### 项目结构
+```
+frontend/
+├── layers/          # 业务层
+│   ├── auth/       # 认证模块
+│   ├── rbac/       # 权限模块
+│   └── ui-kit/     # UI组件库
+├── composables/     # 全局组合式函数
+│   ├── useApi.ts   # API统一处理
+│   └── usePermissions.ts # 权限检查
+├── pages/          # 全局页面
+├── config/         # 配置文件
+│   ├── routes.ts   # 路由权限
+│   ├── permissions.ts # 权限定义
+│   └── api-auth.ts # API认证配置
+├── server/api/v1/[...].ts # 服务端API代理
+├── plugins/        # 插件配置
+│   ├── auth-init.client.ts # 认证初始化
+│   └── error-handler.client.ts # 全局错误处理
+└── nuxt.config.ts  # 主配置
+```
 
-- **设计原则**:
-    - **KISS 原则**: 保持简单，避免过度工程化。优先实用性，按需渐进式增强。
-    - **统一处理**: 使用封装好的工具确保代码一致性和可维护性。
+### 组件开发
+- 业务组件放在对应Layer中
+- 通用UI组件放在 `layers/ui-kit`
+- 优先使用 @nuxt/ui v3 组件
+- 样式使用 Tailwind CSS
 
-- **API 请求**:
-    - **必须**使用项目封装的 `composables/useApi.ts` 进行所有后端 API 通信。
-    - **必须**使用 `apiRequest()` 方法处理客户端操作（如表单提交）。
-    - **必须**使用 `useApiData()` 方法进行SSR友好的数据获取。
-    - **禁止**在业务代码中直接使用原始的 `$fetch` 或 `useFetch`。
+### 状态管理
+- Store按业务领域组织
+- 使用 `pinia-plugin-persistedstate` 持久化
+- Options API Store更SSR友好
 
-- **状态与错误处理**:
-    - **必须**依赖 `useApi()` 内置的错误处理和通知功能，确保体验一致。
-    - **必须**使用 `useLoading` 或 `useFormValidation` 管理加载和表单状态。
-    - 认证Token失效（401错误）由系统自动处理，无需在业务代码中手动干预。
+### 权限控制
+- 路由保护在 `config/routes.ts` 配置
+- 使用 `usePermissions()` 检查权限
+- 使用 `<PermissionGuard>` 组件控制UI
 
-- **认证流程**:
-    - 认证逻辑在 `server/api/auth/[...].ts` 中实现。
-    - 页面级保护**必须**使用 `definePageMeta({ middleware: 'auth' })`。
-    - 组件内获取用户状态使用 `useAuth()`。
+### API认证配置
+- API路径认证需求在 `config/api-auth.ts` 集中配置
+- 服务端API代理自动根据配置处理认证
+- 支持公开路径和特殊权限路径配置
 
-- **客户端渲染**:
-    - **必须**使用 `<ClientOnly>` 组件包裹所有仅限客户端的库，特别是 `ECharts` 图表。
-    - **必须**为 `<ClientOnly>` 提供 `fallback` 内容，以提升用户体验。
-
-- **样式**:
-    - 优先使用 `@nuxt/ui v3` 提供的组件和设计令牌 (design tokens)。
-    - 全局样式定制在 `app.config.ts` 中完成。
-    - 局部微调直接在组件上使用 Tailwind CSS 的 `class`。
+### 错误处理
+- 全局错误处理器在 `plugins/error-handler.client.ts`
+- 自动捕获Vue运行时错误和未处理的Promise rejection
+- 401错误自动触发登出流程

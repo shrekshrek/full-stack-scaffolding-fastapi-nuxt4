@@ -1,3 +1,5 @@
+import { requiresAuthentication } from '../../../config/api-auth'
+
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
   const apiBase = runtimeConfig.public.apiBase
@@ -13,9 +15,23 @@ export default defineEventHandler(async (event) => {
   // 获取请求方法
   const method = getMethod(event)
   
+  // 使用统一配置检查是否需要认证
+  const needsAuth = requiresAuthentication(cleanPath)
+  
   // 准备请求头，过滤掉可能有问题的头部
   const headers: Record<string, string> = {}
   const originalHeaders = getHeaders(event)
+  
+  // 如果需要认证，检查Authorization头
+  if (needsAuth) {
+    const authHeader = originalHeaders['authorization'] || originalHeaders['Authorization']
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Unauthorized - Authentication required'
+      })
+    }
+  }
   
   // 只复制安全的头部
   const safeHeaders = ['content-type', 'authorization', 'accept', 'user-agent']

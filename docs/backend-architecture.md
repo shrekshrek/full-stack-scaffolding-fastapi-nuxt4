@@ -57,6 +57,7 @@ backend/
 │   ├── middleware.py        # 全局中间件
 │   ├── exceptions.py        # 全局异常定义
 │   ├── pagination.py        # 分页工具
+│   ├── utils.py             # 通用工具函数
 │   ├── redis.py             # Redis连接配置
 │   └── celery_app.py        # Celery应用配置
 ├── alembic/                 # 数据库迁移
@@ -136,6 +137,7 @@ backend/
 - `middleware.py`: 全局中间件（异常处理、日志、安全头等）
 - `exceptions.py`: 自定义异常类定义
 - `pagination.py`: 分页工具函数
+- `utils.py`: 通用工具函数（CPU密集型任务处理等）
 
 ---
 

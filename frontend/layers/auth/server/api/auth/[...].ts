@@ -6,16 +6,14 @@ import { z } from 'zod'
 import type { User } from '../../../../../types/user'
 import type { Token } from '../../../../../types/auth'
 
-const runtimeConfig = useRuntimeConfig()
-
 // Using zod to validate the credentials
 const credentialsSchema = z.object({
   username: z.string().min(1, 'Username is required.'),
   password: z.string().min(1, 'Password is required.'),
 })
 
-export const authOptions = {
-  secret: runtimeConfig.NUXT_SECRET as string,
+export default NuxtAuthHandler({
+  secret: process.env.NUXT_AUTH_SECRET,
   providers: [
     // @ts-expect-error You need to use .default here for it to work during SSR. May be fixed via Vite at some point
     CredentialsProvider.default({
@@ -29,6 +27,7 @@ export const authOptions = {
         
         try {
           const { username, password } = credentialsSchema.parse(credentials)
+          const runtimeConfig = useRuntimeConfig()
 
           // Use form data format as expected by FastAPI
           const formData = new URLSearchParams()
@@ -102,6 +101,4 @@ export const authOptions = {
       return session
     },
   },
-}
-
-export default NuxtAuthHandler(authOptions)
+})

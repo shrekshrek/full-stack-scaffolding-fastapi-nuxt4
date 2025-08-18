@@ -7,19 +7,52 @@
 
 import { getRoutePermission, checkRoutePermission, DEFAULT_REDIRECT_ROUTES, AuthRequirement } from '../../config/routes'
 
-export default defineNuxtRouteMiddleware((to) => {
-  // 跳过服务端渲染时的检查（避免性能问题）
-  if (import.meta.server) return
-  
+export default defineNuxtRouteMiddleware(async (to) => {
   // 获取当前路由的权限配置
   const routeConfig = getRoutePermission(to.path)
   
   // 获取认证状态和用户信息
   const { status, data } = useAuth()
   
-  // 如果认证状态还在加载中，等待
-  if (status.value === 'loading') {
+  // 服务端特殊处理 - 只做基础认证检查
+  if (import.meta.server) {
+    const authReq = routeConfig.auth || AuthRequirement.REQUIRED
+    
+    // 需要认证的路由，检查是否有token
+    if (authReq === AuthRequirement.REQUIRED && !data.value?.accessToken) {
+      return navigateTo(DEFAULT_REDIRECT_ROUTES.LOGIN)
+    }
+    
+    // 已认证用户不能访问的路由（如登录页）
+    if (authReq === AuthRequirement.GUEST_ONLY && data.value?.accessToken) {
+      return navigateTo(routeConfig.redirectTo || DEFAULT_REDIRECT_ROUTES.DASHBOARD)
+    }
+    
+    // 服务端不进行复杂的权限检查，交给客户端处理
     return
+  }
+  
+  // 客户端：如果认证状态还在加载中，等待（最多2秒）
+  if (status.value === 'loading') {
+    await new Promise<void>((resolve) => {
+      let unwatchFn: (() => void) | null = null
+      
+      // 超时保护
+      const timeout = setTimeout(() => {
+        if (unwatchFn) unwatchFn()
+        resolve()
+      }, 2000)
+      
+      const unwatch = watch(status, (newStatus) => {
+        if (newStatus !== 'loading') {
+          clearTimeout(timeout)
+          unwatch()
+          resolve()
+        }
+      }, { immediate: true })
+      
+      unwatchFn = unwatch
+    })
   }
   
   // 检查认证状态

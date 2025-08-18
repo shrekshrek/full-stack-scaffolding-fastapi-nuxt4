@@ -63,12 +63,15 @@ frontend/
 │   └── useFormValidation.ts # 表单验证 (推荐)
 ├── config/                  # 配置文件 (推荐)
 │   ├── routes.ts           # 路由权限配置 (必需)
-│   └── permissions.ts      # 权限定义 (必需)
+│   ├── permissions.ts      # 权限定义 (必需)
+│   └── api-auth.ts         # API认证配置 (必需)
 ├── middleware/              # 全局中间件 (推荐)
 │   └── route-guard.global.ts # 统一路由守卫 (必需)
 ├── plugins/                 # 插件 (按需)
-│   └── auth-init.client.ts # 认证初始化 (必需)
+│   ├── auth-init.client.ts # 认证初始化 (必需)
+│   └── error-handler.client.ts # 全局错误处理 (推荐)
 ├── server/                  # 全局服务端API (可选)
+│   └── api/v1/[...].ts     # API代理中间件 (必需)
 ├── types/                   # TypeScript 类型定义 (推荐)
 ├── assets/                  # 编译时资源 (可选)
 ├── public/                  # 静态资源 (可选)
@@ -189,7 +192,9 @@ components: [
 - **认证初始化**: `plugins/auth-init.client.ts` 统一处理应用启动时的认证状态
 - **统一守卫**: `middleware/route-guard.global.ts` 统一处理认证检查和权限验证
 - **权限配置**: `config/permissions.ts` 和 `config/routes.ts` 集中管理权限和路由安全要求
+- **API认证配置**: `config/api-auth.ts` 集中管理API路径的认证需求
 - **API处理**: `composables/useApi.ts` 统一处理API请求和401错误
+- **错误处理**: `plugins/error-handler.client.ts` 全局错误捕获和处理
 
 **设计特点**：配置驱动、自动化处理、权限优先、开发高效
 
@@ -337,7 +342,61 @@ const { data } = usersApi.getUsers({
 
 ---
 
-### 10. 本地开发工作流
+### 10. API认证配置
+
+**配置文件**: `config/api-auth.ts`
+
+**功能**：集中管理所有API路径的认证需求，服务端代理自动根据配置处理认证。
+
+```typescript
+export const API_AUTH_CONFIG = {
+  // 公开路径：不需要认证
+  public: [
+    '/auth/login',
+    '/auth/register',
+    '/public',
+    // ...其他公开路径
+  ],
+  
+  // 特殊权限路径（可扩展）
+  special: {
+    readOnly: [
+      '/announcements',
+      '/public-stats'
+    ]
+  }
+}
+```
+
+**使用方式**：
+- 服务端代理 `server/api/v1/[...].ts` 自动读取配置
+- 新增模块时只需在配置中添加相应路径
+- 不需要修改代理逻辑
+
+---
+
+### 11. 新模块添加流程
+
+添加新业务模块时，只需调整以下配置：
+
+1. **路由权限配置** (`config/routes.ts`)
+   - 添加页面路由的认证和权限要求
+
+2. **API认证配置** (`config/api-auth.ts`)
+   - 添加公开API路径（如果有）
+   - 其他API默认需要认证
+
+3. **权限定义** (`config/permissions.ts`)
+   - 如需细粒度权限控制，添加新权限定义
+
+**优势**：
+- 配置集中管理，易于维护
+- 减少重复代码
+- 统一处理逻辑
+
+---
+
+### 12. 本地开发工作流
 
 1. **启动开发环境**:
    - 确保 Docker Desktop 正在运行

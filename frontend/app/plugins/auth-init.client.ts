@@ -12,14 +12,22 @@ export default defineNuxtPlugin(async () => {
   const userStore = useUserStore()
   const permissionsStore = usePermissionsStore()
 
-  // 等待认证状态稳定
+  // 等待认证状态稳定（最多3秒）
   await new Promise<void>((resolve) => {
     let stopWatching: (() => void) | null = null
+    
+    // 3秒超时保护，避免无限等待
+    const timeout = setTimeout(() => {
+      console.warn('[Auth Init] Authentication status check timeout after 3 seconds')
+      if (stopWatching) stopWatching()
+      resolve()
+    }, 3000)
     
     stopWatching = watch(
       () => status.value,
       (newStatus) => {
         if (newStatus !== 'loading') {
+          clearTimeout(timeout)
           if (stopWatching) stopWatching()
           resolve()
         }

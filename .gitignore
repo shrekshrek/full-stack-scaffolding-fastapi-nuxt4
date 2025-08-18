@@ -20,7 +20,6 @@ __MACOSX
 # Dependencies / Lock files
 node_modules/
 # poetry.lock should be committed, but ignore other managers' lock files
-pdm.lock
 Pipfile.lock
 
 # --- Frontend (Nuxt.js) ---
@@ -73,7 +72,3 @@ MANIFEST
 test.db
 *.sqlite
 *.sqlite3
-
-# Tool specific configs
-.pdm-python
-.pdm.toml
