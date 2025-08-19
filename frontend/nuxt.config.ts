@@ -64,9 +64,6 @@ export default defineNuxtConfig({
     // '@nuxt/image',
     '@nuxt/icon',
     '@pinia/nuxt',
-    ['@sidebase/nuxt-auth', {
-      // The module is enabled.
-      isEnabled: true,
-    }]
+    'nuxt-auth-utils'  // 使用新的认证模块
   ]
 })

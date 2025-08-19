@@ -84,10 +84,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 
 definePageMeta({
   layout: 'auth',
-  auth: {
-    unauthenticatedOnly: true,
-    navigateAuthenticatedTo: '/dashboard',
-  },
+  // 认证保护已由全局认证守卫处理，无需重复定义
 })
 
 const { register } = useAuthApi();
@@ -122,12 +119,12 @@ const handleSubmit = async (event: FormSubmitEvent<typeof state>) => {
       password: event.data.password,
     });
 
-    // 注册成功后，跳转到登录页
-    await navigateTo('/login?registered=true');
+    // 注册成功后已自动登录，直接跳转到工作台
+    await navigateTo('/dashboard');
 
   } catch (e) {
-    const error = e as { data?: { detail?: string } };
-    errorMsg.value = error.data?.detail || '注册失败，请稍后重试';
+    const error = e as { data?: { statusMessage?: string; detail?: string } };
+    errorMsg.value = error.data?.statusMessage || error.data?.detail || '注册失败，请稍后重试';
   } finally {
     loading.value = false;
   }

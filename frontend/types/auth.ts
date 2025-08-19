@@ -57,4 +57,20 @@ export interface ApiError {
     msg: string;
     type: string;
   }>;
+}
+
+// 标准错误类型（用于类型安全）
+export interface StandardError {
+  data?: {
+    detail?: string;
+    statusMessage?: string;
+  };
+  message?: string;
+  status?: number;
+  statusCode?: number;
+  response?: {
+    data?: {
+      detail?: string;
+    };
+  };
 } 

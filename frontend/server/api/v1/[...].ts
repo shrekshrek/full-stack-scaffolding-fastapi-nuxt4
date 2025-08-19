@@ -1,8 +1,7 @@
 import { requiresAuthentication } from '../../../config/api-auth'
 
 export default defineEventHandler(async (event) => {
-  const runtimeConfig = useRuntimeConfig()
-  const apiBase = runtimeConfig.public.apiBase
+  const config = useRuntimeConfig(event)
   
   // 提取路径和查询参数
   const url = event.node.req.url || ''
@@ -10,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const cleanPath = (path || '').replace(/^\/api\/v1/, '') || ''
   
   // 构建完整的后端URL
-  const targetUrl = `${apiBase}${cleanPath}${queryString ? `?${queryString}` : ''}`
+  const targetUrl = `${config.public.apiBase}${cleanPath}${queryString ? `?${queryString}` : ''}`
   
   // 获取请求方法
   const method = getMethod(event)
@@ -22,9 +21,19 @@ export default defineEventHandler(async (event) => {
   const headers: Record<string, string> = {}
   const originalHeaders = getHeaders(event)
   
-  // 如果需要认证，检查Authorization头
+  // 如果需要认证，检查Authorization头或session
   if (needsAuth) {
-    const authHeader = originalHeaders['authorization'] || originalHeaders['Authorization']
+    let authHeader = originalHeaders['authorization'] || originalHeaders['Authorization']
+    
+    // 如果没有Authorization头，尝试从session获取token
+    if (!authHeader) {
+      const session = await getUserSession(event)
+      if (session?.accessToken) {
+        authHeader = `Bearer ${session.accessToken}`
+        headers['Authorization'] = authHeader
+      }
+    }
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw createError({
         statusCode: 401,

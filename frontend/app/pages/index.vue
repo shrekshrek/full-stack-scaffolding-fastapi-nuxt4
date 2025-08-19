@@ -26,19 +26,14 @@
 
     <!-- 用户状态区域 -->
     <UCard>
-      <div v-if="status === 'loading'" class="text-center py-8">
-        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-blue-600 mx-auto mb-4 animate-spin" />
-        <p class="text-gray-600 dark:text-gray-400">正在加载用户信息...</p>
-      </div>
-
-      <div v-else-if="status === 'authenticated'" class="text-center space-y-6">
+      <div v-if="loggedIn" class="text-center space-y-6">
         <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full">
           <UIcon name="i-heroicons-check" class="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
         <div>
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">欢迎回来！</h2>
           <p class="text-gray-600 dark:text-gray-400">
-            你好，<span class="font-medium text-gray-900 dark:text-white">{{ data?.user?.username || "用户" }}</span>
+            你好，<span class="font-medium text-gray-900 dark:text-white">{{ session?.user?.username || "用户" }}</span>
           </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -130,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-const { data, status } = useAuth();
+const { session, loggedIn } = useUserSession();
 const permissions = usePermissions();
 
 useHead({

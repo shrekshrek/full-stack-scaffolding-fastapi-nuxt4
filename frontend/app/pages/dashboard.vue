@@ -3,7 +3,7 @@
     <!-- 欢迎信息 -->
     <div>
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        {{ getGreeting() }}，{{ data?.user?.username }}
+        {{ getGreeting() }}，{{ session?.user?.username }}
       </h1>
       <p class="text-gray-600 dark:text-gray-400 mt-1">
         {{ formatDate(new Date()) }}
@@ -21,13 +21,13 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             用户名
           </label>
-          <p class="text-gray-900 dark:text-gray-100">{{ data?.user?.username }}</p>
+          <p class="text-gray-900 dark:text-gray-100">{{ session?.user?.username }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             邮箱
           </label>
-          <p class="text-gray-900 dark:text-gray-100">{{ data?.user?.email }}</p>
+          <p class="text-gray-900 dark:text-gray-100">{{ session?.user?.email }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -35,13 +35,13 @@
           </label>
           <div class="flex flex-wrap gap-1">
             <UBadge
-              v-for="role in data?.user?.roles || ['user']"
-              :key="typeof role === 'string' ? role : role.name"
-              :color="getRoleColor(typeof role === 'string' ? role : role.name)"
+              v-for="role in session?.user?.roles || ['user']"
+              :key="role"
+              :color="getRoleColor(role)"
               variant="soft"
               size="sm"
             >
-              {{ getRoleLabel(typeof role === 'string' ? role : role.name) }}
+              {{ getRoleLabel(role) }}
             </UBadge>
           </div>
         </div>
@@ -116,7 +116,8 @@
 // 认证保护已由全局认证守卫处理，无需重复定义
 import { getRoleColor, getRoleLabel } from '../../layers/users/utils/ui-helpers'
 
-const { data, signOut } = useAuth()
+const { session } = useUserSession()
+const { logout } = useAuthApi()
 const permissions = usePermissions()
 
 // 获取问候语
@@ -139,6 +140,7 @@ const formatDate = (date: Date) => {
 }
 
 const handleSignOut = async () => {
-  await signOut({ callbackUrl: '/login' })
+  await logout()
+  await navigateTo('/login')
 }
 </script> 

@@ -54,18 +54,18 @@ export const usePermissions = () => {
     }
   }
 
-  const { data } = useAuth()
+  const { session } = useUserSession()
   const userStore = useUserStore()
   const permissionsStore = usePermissionsStore()
   
   // 获取当前用户所有角色
   const currentUserRoles = computed(() => {
-    return data.value?.user?.roles || userStore.profile?.roles || []
+    return session.value?.user?.roles || userStore.profile?.roles || []
   })
   
   // 获取当前用户ID
   const currentUserId = computed(() => {
-    return data.value?.user?.id || userStore.profile?.id
+    return session.value?.user?.id || userStore.profile?.id
   })
   
   // 核心权限检查函数 - 支持多角色权限聚合
@@ -75,8 +75,8 @@ export const usePermissions = () => {
     }
     
     // 检查用户的任一角色是否拥有该权限
-    return currentUserRoles.value.some((role: string | { name: string }) => 
-      permissionsStore.hasRolePermission(typeof role === 'string' ? role : role.name, permission)
+    return currentUserRoles.value.some((role: string) => 
+      permissionsStore.hasRolePermission(role, permission)
     )
   }
   

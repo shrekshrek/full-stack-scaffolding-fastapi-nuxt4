@@ -57,8 +57,10 @@ export const useApi = () => {
         message = '登录已过期，请重新登录'
         // 处理token过期，自动登出
         if (import.meta.client) {
-          const { signOut } = useAuth()
-          signOut({ callbackUrl: '/login' })
+          const { clear } = useUserSession()
+          clear().then(() => {
+            navigateTo('/login')
+          })
         }
         break
       case 403:
@@ -121,7 +123,7 @@ export const useApi = () => {
     const fullPath = buildApiPath(path)
     
     // 获取认证 token
-    const { data: session } = useAuth()
+    const { session } = useUserSession()
     const headers = { ...((options.headers as Record<string, string>) || {}) }
     
     // 如果有认证 token，添加到请求头
@@ -148,7 +150,7 @@ export const useApi = () => {
     const fullPath = buildApiPath(path)
     
     // 获取认证 token
-    const { data: session } = useAuth()
+    const { session } = useUserSession()
     const headers = { ...((options.headers as Record<string, string>) || {}) }
     
     // 如果有认证 token，添加到请求头

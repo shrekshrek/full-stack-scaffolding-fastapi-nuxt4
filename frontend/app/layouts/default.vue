@@ -305,9 +305,13 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 
-const { data, status, signOut } = useAuth();
-const toast = useToast();
+const { loggedIn, session } = useUserSession();
+const { logout } = useAuthApi();
 const permissions = usePermissions();
+
+// 计算属性以兼容原有代码
+const status = computed(() => loggedIn.value ? 'authenticated' : 'unauthenticated');
+const data = computed(() => ({ user: session.value?.user }));
 
 // 移动端菜单状态
 const isMobileMenuOpen = ref(false);
@@ -353,18 +357,10 @@ const userMenuItems = computed(
 
 const handleSignOut = async () => {
   try {
-    await signOut({ callbackUrl: "/login" });
-    toast.add({
-      title: "已成功登出",
-      description: "感谢您的使用，期待下次再见！",
-      color: "success",
-    });
-  } catch {
-    toast.add({
-      title: "登出失败",
-      description: "请稍后重试",
-      color: "error",
-    });
+    await logout();
+    await navigateTo("/login");
+  } catch (error) {
+    console.error("Logout error:", error);
   } finally {
     isMobileMenuOpen.value = false;
   }

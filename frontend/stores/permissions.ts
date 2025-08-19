@@ -119,10 +119,10 @@ export const usePermissionsStore = defineStore('permissions', {
       
       this.loading = true
       try {
-        const { status } = useAuth()
+        const { loggedIn } = useUserSession()
         
         // 检查是否已认证
-        if (status.value === 'authenticated') {
+        if (loggedIn.value) {
           const { apiRequest } = useApi()
           
           // 获取所有权限和角色数据（分批获取）

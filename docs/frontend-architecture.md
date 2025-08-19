@@ -25,7 +25,7 @@
 -   **核心框架**: [Nuxt 4](https://nuxt.com/)
 -   **UI 库**: [@nuxt/ui v3](https://ui.nuxt.com/) (基于 Tailwind CSS)
 -   **状态管理**: [Pinia](https://pinia.vuejs.org/)
--   **认证**: [@sidebase/nuxt-auth](https://sidebase.io/nuxt-auth/getting-started)
+-   **认证**: [nuxt-auth-utils](https://nuxt.com/modules/auth-utils)
 -   **数据可视化**: [ECharts](https://echarts.apache.org/en/index.html)
 -   **包管理**: PNPM
 

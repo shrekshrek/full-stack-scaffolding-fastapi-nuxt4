@@ -34,6 +34,7 @@ export const useUserStore = defineStore('user', {
         // 转换为 UserProfile 格式
         this.profile = {
           ...data,
+          roles: data.roles || [],
           avatarUrl: null,
         }
         
@@ -54,6 +55,22 @@ export const useUserStore = defineStore('user', {
       this.profile = userProfile
     },
     
+    /**
+     * 设置用户信息（兼容方法）
+     */
+    setUser(user: User | UserProfile) {
+      // 如果传入的是User类型，转换为UserProfile
+      if (!('avatarUrl' in user)) {
+        this.profile = {
+          ...user,
+          roles: user.roles || [],
+          avatarUrl: null,
+        }
+      } else {
+        this.profile = user as UserProfile
+      }
+    },
+    
     updateProfile(updates: Partial<UserProfile>) {
       if (this.profile) {
         Object.assign(this.profile, updates)
@@ -61,6 +78,13 @@ export const useUserStore = defineStore('user', {
     },
     
     clearProfile() {
+      this.profile = null
+    },
+    
+    /**
+     * 清除用户信息（兼容方法）
+     */
+    clearUser() {
       this.profile = null
     },
   },

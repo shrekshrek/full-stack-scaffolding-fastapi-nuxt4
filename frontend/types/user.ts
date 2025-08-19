@@ -12,7 +12,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  roles: string[]; // 用户的角色名称数组（与后端一致）
+  roles?: string[]; // 用户的角色名称数组（与后端一致）
   created_at: string; // ISO 8601 格式的时间字符串
   updated_at: string; // ISO 8601 格式的时间字符串
 }
@@ -33,6 +33,7 @@ export interface UserUpdate {
 
 // 用户资料（用于前端状态管理，扩展了基础 User 类型）
 export interface UserProfile extends User {
+  roles: string[]; // UserProfile 确保 roles 总是存在
   // 前端扩展字段
   avatarUrl?: string | null;
 }

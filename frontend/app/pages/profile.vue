@@ -145,8 +145,7 @@ import { getRoleColor, getRoleLabel } from '../../layers/users/utils/ui-helpers'
 
 // 页面元数据
 definePageMeta({
-  title: '个人资料',
-  middleware: 'auth'
+  title: '个人资料'
 })
 
 // 获取当前用户信息

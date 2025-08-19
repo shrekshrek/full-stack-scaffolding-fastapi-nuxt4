@@ -27,17 +27,17 @@
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span>状态:</span>
-                  <UBadge :color="status === 'authenticated' ? 'success' : 'error'" size="xs">
-                    {{ status }}
+                  <UBadge :color="loggedIn ? 'success' : 'error'" size="xs">
+                    {{ loggedIn ? 'authenticated' : 'unauthenticated' }}
                   </UBadge>
                 </div>
                 <div class="flex justify-between">
                   <span>是否认证:</span>
-                  <span class="font-mono">{{ status === 'authenticated' ? '是' : '否' }}</span>
+                  <span class="font-mono">{{ loggedIn ? '是' : '否' }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>有Token:</span>
-                  <span class="font-mono">{{ data?.accessToken ? '是' : '否' }}</span>
+                  <span class="font-mono">{{ session?.accessToken ? '是' : '否' }}</span>
                 </div>
               </div>
             </div>
@@ -45,18 +45,18 @@
             <!-- 用户信息 -->
             <div class="space-y-3">
               <h3 class="font-medium text-gray-900 dark:text-white">用户信息</h3>
-              <div v-if="data?.user" class="space-y-2 text-sm">
+              <div v-if="session?.user" class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span>用户名:</span>
-                  <span class="font-mono">{{ data.user.username }}</span>
+                  <span class="font-mono">{{ session.user.username }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>邮箱:</span>
-                  <span class="font-mono">{{ data.user.email }}</span>
+                  <span class="font-mono">{{ session.user.email }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>用户ID:</span>
-                  <span class="font-mono">{{ data.user.id }}</span>
+                  <span class="font-mono">{{ session.user.id }}</span>
                 </div>
               </div>
               <div v-else class="text-sm text-gray-500">
@@ -124,11 +124,11 @@
               <div v-if="permissions.currentUserRoles.value.length > 0" class="flex flex-wrap gap-2">
                                  <UBadge 
                    v-for="role in permissions.currentUserRoles.value" 
-                   :key="typeof role === 'string' ? role : role.name"
+                   :key="role"
                    color="primary"
                    variant="soft"
                  >
-                   {{ getRoleLabel(typeof role === 'string' ? role : role.name) }}
+                   {{ getRoleLabel(role) }}
                  </UBadge>
               </div>
               <div v-else class="text-sm text-gray-500">
@@ -414,7 +414,8 @@ definePageMeta({
 })
 
 // 认证相关
-const { data, status, signIn, signOut } = useAuth()
+const { session, loggedIn } = useUserSession()
+const { login, logout } = useAuthApi()
 const permissionsStore = usePermissionsStore()
 const permissions = usePermissions()
 
@@ -466,18 +467,14 @@ const showTestMessage = (message: string, type: 'success' | 'error' | 'info' = '
 const testLogin = async () => {
   loginLoading.value = true
   try {
-    // 修正：直接调用 signIn，不使用其返回值来判断错误
-    await signIn('credentials', {
+    // 使用新的 login 方法
+    await login({
       username: 'admin',
-      password: 'admin123',
-      redirect: false
+      password: 'admin123'
     })
     
-    // signIn 成功后，useAuth() 的状态会更新
-    const { status } = useAuth()
-    
     // 检查认证状态来判断是否成功
-    if (status.value === "authenticated") {
+    if (loggedIn.value) {
       console.log('登录成功，认证状态已更新')
       showTestMessage('登录成功！用户信息和权限已更新', 'success')
     } else {
@@ -493,7 +490,7 @@ const testLogin = async () => {
 
 const testLogout = async () => {
   try {
-    await signOut({ redirect: false })
+    await logout()
     console.log('登出成功')
     showTestMessage('登出成功！', 'success')
   } catch (error) {

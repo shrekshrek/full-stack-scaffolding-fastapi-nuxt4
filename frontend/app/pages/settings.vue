@@ -127,11 +127,10 @@ import { z } from 'zod'
 
 // 页面元数据
 definePageMeta({
-  title: '账户设置',
-  middleware: 'auth'
+  title: '账户设置'
 })
 
-const { signOut } = useAuth()
+const { logout } = useAuthApi()
 const toast = useToast()
 
 // 修改密码相关
@@ -200,12 +199,13 @@ const handlePasswordSubmit = async () => {
 // 处理登出
 const handleSignOut = async () => {
   try {
-    await signOut({ callbackUrl: '/login' })
+    await logout()
     toast.add({
       title: '已成功登出',
       description: '感谢您的使用，期待下次再见！',
       color: 'success'
     })
+    await navigateTo('/login')
   } catch {
     toast.add({
       title: '登出失败',
