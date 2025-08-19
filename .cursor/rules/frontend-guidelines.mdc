@@ -10,7 +10,7 @@ alwaysApply: true
 - **架构**: Nuxt Layers (领域驱动设计)
 - **UI库**: @nuxt/ui v3（必须是v3版本）
 - **状态管理**: Pinia
-- **认证**: @sidebase/nuxt-auth
+- **认证**: nuxt-auth-utils
 - **图表**: ECharts（必须用ClientOnly包装）
 
 ## 关键编码规范

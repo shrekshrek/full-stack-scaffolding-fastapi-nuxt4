@@ -2,17 +2,11 @@
 
 本项目支持开发环境和生产环境的分离部署。
 
-## 📁 环境配置文件
+## 📁 配置文件
 
-```
-项目根目录/
-├── .env                          # 开发环境配置 (前端+Docker基础设施)
-├── backend/.env                  # 后端开发环境配置
-├── backend/.env.production       # 后端生产环境配置 ⭐ 新增
-├── docker-compose.yml            # 开发环境 Docker 配置
-├── docker-compose.prod.yml       # 生产环境 Docker 配置
-└── scripts/deploy-production.sh  # 生产环境部署脚本 ⭐ 新增
-```
+- **开发环境**: `.env`
+- **生产环境**: `.env.production` (所有服务共享)
+- **详细配置说明**: 参见 [配置管理指南](docs/CONFIGURATION.md)
 
 ## 🔧 开发环境
 
@@ -36,15 +30,21 @@ pnpm dev
 
 ### 首次部署准备
 
-1. **检查生产环境配置**
+1. **创建生产环境配置**
    ```bash
-   # 编辑生产环境配置
-   nano backend/.env.production
+   # 复制配置模板
+   cp .env.production.example .env.production
    
-   # 重要：修改以下配置
-   # - SECRET_KEY: 使用安全的密钥
-   # - DATABASE_URL: 生产数据库连接
-   # - SMTP配置: 生产邮件服务器
+   # 编辑配置文件
+   nano .env.production
+   
+   # 重要：更新以下配置
+   # - POSTGRES_PASSWORD: 使用强密码
+   # - SECRET_KEY: 使用 openssl rand -hex 32 生成
+   # - NUXT_SESSION_PASSWORD: 使用 openssl rand -base64 32 生成
+   # - DATABASE_URL: 确保密码与POSTGRES_PASSWORD一致
+   # - SMTP配置: 配置生产邮件服务器
+   # - BACKEND_CORS_ORIGINS: 设置为实际域名
    ```
 
 2. **部署到生产环境**
@@ -82,10 +82,18 @@ pnpm prod:down
 
 ### 生产环境密钥生成
 ```bash
-# 生成新的安全密钥
+# 生成后端JWT密钥
 openssl rand -hex 32
+# 将生成的密钥更新到 .env.production 中的 SECRET_KEY
 
-# 将生成的密钥更新到 backend/.env.production 中的 SECRET_KEY
+# 生成前端Session密码
+openssl rand -base64 32
+# 将生成的密码更新到 .env.production 中的 NUXT_SESSION_PASSWORD
+
+# 生成强密码（用于数据库）
+openssl rand -base64 24
+# 将生成的密码更新到 .env.production 中的 POSTGRES_PASSWORD
+# 注意：同时更新 DATABASE_URL 中的密码部分
 ```
 
 ### 环境变量说明
@@ -93,8 +101,10 @@ openssl rand -hex 32
 | 变量名 | 开发环境 | 生产环境 | 说明 |
 |--------|----------|----------|------|
 | `ENVIRONMENT` | development | production | 环境标识 |
+| `POSTGRES_PASSWORD` | postgres | 强密码 | PostgreSQL密码 |
 | `SECRET_KEY` | 弱密钥(开发用) | 强密钥(生产用) | JWT签名密钥 |
 | `DATABASE_URL` | localhost:5432 | postgres_db:5432 | 数据库连接 |
+| `NUXT_SESSION_PASSWORD` | 示例值 | 强密码(生产用) | Session加密密码 |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | 30 | 15 | Token过期时间 |
 
 ## 🛠️ 故障排除

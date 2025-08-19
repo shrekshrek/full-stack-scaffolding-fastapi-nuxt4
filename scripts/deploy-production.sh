@@ -8,10 +8,47 @@ set -e  # 遇到错误立即退出
 echo "🚀 Starting production deployment..."
 echo "=================================="
 
-# 检查必要文件是否存在
-if [ ! -f "backend/.env.production" ]; then
-    echo "❌ Error: backend/.env.production not found!"
-    echo "💡 Please create production environment configuration first."
+# 检查根目录的统一配置文件
+if [ ! -f ".env.production" ]; then
+    echo "❌ Error: .env.production not found in root directory!"
+    
+    # 尝试从示例文件创建
+    if [ -f ".env.production.example" ]; then
+        echo "📋 Creating from example file..."
+        cp .env.production.example .env.production
+        echo "⚠️  IMPORTANT: Edit .env.production with your production values:"
+        echo "   - Generate SECRET_KEY: openssl rand -hex 32"
+        echo "   - Generate NUXT_SESSION_PASSWORD: openssl rand -base64 32"
+        echo "   - Update POSTGRES_PASSWORD with a strong password"
+        echo "   - Configure SMTP settings for your mail service"
+        echo "   - Update BACKEND_CORS_ORIGINS with your domain"
+        exit 1
+    else
+        echo "💡 Please create production environment configuration first."
+        echo "   Copy .env.production.example to .env.production and update values."
+        exit 1
+    fi
+fi
+
+# 检查配置是否已更改
+if grep -q "CHANGE_THIS" .env.production; then
+    echo "⚠️  WARNING: Some configuration values have not been changed from defaults!"
+    echo ""
+    echo "   Please update ALL values containing 'CHANGE_THIS' in .env.production:"
+    echo "   - POSTGRES_PASSWORD: Use a strong password"
+    echo "   - SECRET_KEY: Generate with 'openssl rand -hex 32'"
+    echo "   - NUXT_SESSION_PASSWORD: Generate with 'openssl rand -base64 32'"
+    echo "   - SMTP settings: Configure your email service"
+    echo ""
+    exit 1
+fi
+
+# 验证关键配置的一致性
+echo "🔍 Validating configuration consistency..."
+POSTGRES_PWD=$(grep "^POSTGRES_PASSWORD=" .env.production | cut -d '=' -f2 | tr -d '"')
+if ! grep -q "postgresql.*$POSTGRES_PWD@postgres_db" .env.production; then
+    echo "⚠️  WARNING: DATABASE_URL password doesn't match POSTGRES_PASSWORD!"
+    echo "   Ensure both use the same password value."
     exit 1
 fi
 
@@ -42,11 +79,13 @@ docker-compose -f docker-compose.prod.yml ps
 
 # 检查后端健康状态
 echo "🏥 Checking backend health..."
-if curl -f -s http://localhost/api/v1/health > /dev/null 2>&1; then
-    echo "✅ Backend is healthy!"
+if curl -f -s http://localhost/api/v1/docs > /dev/null 2>&1; then
+    echo "✅ Backend API docs are accessible!"
+elif curl -f -s http://localhost:8000/docs > /dev/null 2>&1; then
+    echo "✅ Backend is running (direct access)!"
 else
     echo "⚠️ Backend health check failed. Checking logs..."
-    docker-compose -f docker-compose.prod.yml logs backend
+    docker-compose -f docker-compose.prod.yml logs --tail=20 backend
 fi
 
 echo "=================================="

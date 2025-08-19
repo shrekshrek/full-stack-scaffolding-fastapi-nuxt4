@@ -35,7 +35,6 @@
 1.  **复制环境变量文件**:
     ```bash
     cp .env.example .env
-    cp frontend/.env.example frontend/.env
     ```
 2.  **一键安装与构建**:
     ```bash
@@ -94,6 +93,7 @@ pnpm dev
 想要更深入地理解本项目的设计和工作流程？请查阅以下文档：
 
 -   **部署指南**: [`DEPLOYMENT.md`](./DEPLOYMENT.md) - **(必读)** 获取生产环境部署、配置和维护的详细步骤。
+-   **配置管理**: [`docs/CONFIGURATION.md`](./docs/CONFIGURATION.md) - 了解环境配置的统一管理策略。
 -   **开发工作流**: [`docs/WORKFLOW.md`](./docs/WORKFLOW.md) - 了解如何从零开始开发一个新功能。
 -   **前端架构**: [`docs/frontend-architecture.md`](./docs/frontend-architecture.md) - 深入理解前端 Nuxt Layers 架构。
 -   **后端架构**: [`docs/backend-architecture.md`](./docs/backend-architecture.md) - 深入理解后端 FastAPI 模块化设计。

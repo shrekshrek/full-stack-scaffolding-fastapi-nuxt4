@@ -19,6 +19,11 @@
 
 ## 核心配置文件
 
+### 环境配置 (v2.0 统一管理)
+- **开发环境**: `.env` - 本地开发配置
+- **生产环境**: `.env.production` - 所有服务统一配置 ⭐
+- **配置文档**: `docs/CONFIGURATION.md` - 详细配置管理指南
+
 ### 前端配置
 - **API认证配置**: `frontend/config/api-auth.ts` - 集中管理API路径认证需求
 - **路由权限配置**: `frontend/config/routes.ts` - 页面路由的认证和权限要求

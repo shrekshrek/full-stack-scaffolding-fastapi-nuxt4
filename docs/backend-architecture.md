@@ -272,6 +272,8 @@ backend/
 使用`pydantic-settings`从环境变量和`.env`文件加载配置
 
 ### 7.2 主要配置项
+
+**开发环境** (`.env`):
 ```python
 # 环境设置
 ENVIRONMENT = "development"
@@ -287,12 +289,23 @@ API_PREFIX = "/api/v1"
 PROJECT_NAME = "Full-Stack Starter API"
 
 # 认证设置
-SECRET_KEY = "a_very_secret_key"
+SECRET_KEY = "development_secret_key"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+```
 
-# 邮件设置
-SMTP_HOST = "mailhog"
-SMTP_PORT = 1025
+**生产环境** (`.env.production`):
+```python
+# 所有服务统一配置
+ENVIRONMENT = "production"
+
+# 数据库设置  
+POSTGRES_PASSWORD = "CHANGE_THIS_STRONG_PASSWORD"
+DATABASE_URL = "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@postgres_db:5432/fastapi_db"
+
+# 认证设置
+SECRET_KEY = "CHANGE_THIS_USE_OPENSSL_RAND_HEX_32"
+NUXT_SESSION_PASSWORD = "CHANGE_THIS_MUST_BE_AT_LEAST_32_CHARS"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
 ```
 
 ---
@@ -334,10 +347,10 @@ SMTP_PORT = 1025
 
 **项目有两套环境配置：**
 
-- **根目录 `.env`**: Docker容器间通信配置（主机名用容器名）
-- **backend/.env`**: 本地开发配置（主机名用localhost）
+- **开发环境 `.env`**: 本地开发配置，Docker容器间通信
+- **生产环境 `.env.production`**: 统一的生产环境配置，所有服务共享
 
-Docker运行时，根目录`.env`的环境变量会覆盖backend/.env中的同名变量。
+从v2.0起，生产环境配置已统一到根目录的`.env.production`文件，避免配置不一致的问题。
 
 ### 9.2 创建新项目
 
@@ -348,9 +361,13 @@ Docker运行时，根目录`.env`的环境变量会覆盖backend/.env中的同�
    - 端口：`"5433:5432"` (避免冲突)
    - 容器名：`container_name: mynewproject_postgres`
 
-2. **.env**
+2. **.env** (开发环境)
    - `DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5433/my_new_project_db`
    - `PROJECT_NAME=My New Project API`
+
+3. **.env.production** (生产环境)
+   - 复制 `.env.production.example` 并更新所有 `CHANGE_THIS_` 占位符
+   - 使用 `openssl` 生成安全密钥
 
 4. **package.json**
    - `"be:db:cli": "docker-compose exec postgres-db psql -U postgres -d my_new_project_db"`
