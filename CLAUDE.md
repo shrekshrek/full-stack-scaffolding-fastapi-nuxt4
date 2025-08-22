@@ -49,10 +49,10 @@
 #### 后端检查
 ```bash
 # Lint和格式化
-pnpm be:lint    # 或 cd backend && poetry run ruff check --fix && poetry run ruff format
+pnpm be:lint    # 或 cd backend && uv run ruff check --fix && uv run ruff format
 
 # 测试
-pnpm be:test    # 或 cd backend && poetry run pytest
+pnpm be:test    # 或 cd backend && uv run pytest
 ```
 
 #### 前端检查

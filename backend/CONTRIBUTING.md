@@ -57,7 +57,7 @@ backend/
 │   ├── conftest.py       # 测试配置和fixtures
 │   └── test_*.py         # 具体测试文件
 ├── .env.example          # 环境变量模板
-├── poetry.lock             # 锁定的依赖版本 (由 Poetry 自动生成)
+├── uv.lock                 # 锁定的依赖版本 (由 uv 自动生成)
 ├── pyproject.toml        # Poetry 依赖与项目配置
 ├── README.md               # 后端 spezifische Anleitung
 ├── scripts/                # 辅助脚本
@@ -207,18 +207,18 @@ async def get_user(user_id: int):
 标准化的工具链可以自动化繁琐任务，保障项目质量。
 
 #### 依赖管理 (Poetry)
-- **强制使用**: **必须**使用 `Poetry` 作为唯一的包和依赖管理器，以利用其现代化的解析和锁定机制。
+- **强制使用**: **必须**使用 `uv` 作为唯一的包和依赖管理器，以利用其现代化的解析和锁定机制。
 - **添加依赖**:
   ```bash
   # 在 backend 容器中运行
-  poetry add <package-name>
+  uv add <package-name>
   ```
 - **安装依赖**:
   ```bash
   # 在 backend 容器中运行
-  poetry install
+  uv sync
   ```
-- **同步依赖**: 当 `pyproject.toml` 变更后，运行 `poetry install` 来同步环境。
+- **同步依赖**: 当 `pyproject.toml` 变更后，运行 `uv sync` 来同步环境。
 
 #### 数据库迁移 (Alembic)
 - **静态迁移**: 迁移脚本应是确定性的，不依赖于动态数据。
@@ -235,7 +235,7 @@ async def get_user(user_id: int):
     - **数据库**: 所有测试都通过 `conftest.py` 中的 `db_session` Fixture 使用一个独立的、事务性的数据库会话。这确保了测试之间的数据不会互相干扰
     - **测试数据库**: 项目会在 `backend/` 目录下创建 `test.db` 文件作为测试专用的 SQLite 数据库
     - **依赖覆盖**: FastAPI 的 `app.dependency_overrides` 机制被用来在测试时注入隔离的数据库会话，保证测试环境的纯净性
-- **运行测试**: 在 `backend` 目录下，使用 `poetry run pytest` 命令来执行完整的测试套件
+- **运行测试**: 在 `backend` 目录下，使用 `uv run pytest` 命令来执行完整的测试套件
 
 #### 异步任务队列 (Celery)
 - **标准选择**: 使用 `Celery` 作为处理所有后台和异步任务的标准框架。

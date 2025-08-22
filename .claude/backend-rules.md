@@ -7,7 +7,7 @@
 - **数据库**: PostgreSQL + SQLAlchemy (异步ORM) + Alembic
 - **异步任务**: Celery + Redis
 - **LLM框架**: LangChain v0.3+
-- **包管理器**: Poetry
+- **包管理器**: uv
 
 ## 关键编码规范
 

@@ -31,9 +31,8 @@ services:
     volumes:
       - ./backend:/app
       - /app/.venv
-    command: poetry run uvicorn src.main:app --host 0.0.0.0 --reload
+    command: uv run --no-sync uvicorn src.main:app --host 0.0.0.0 --reload
     environment:
-      - POETRY_VIRTUALENVS_IN_PROJECT=true
       - DATABASE_URL=${DATABASE_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}

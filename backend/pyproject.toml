@@ -1,44 +1,50 @@
-[tool.poetry]
+[project]
 name = "fastapi-app"
 version = "0.1.0"
 description = "FastAPI backend for the full-stack application"
-authors = ["Shrek Wang <shrek.wang@example.com>"]
+authors = [{ name = "Shrek Wang", email = "shrek.wang@example.com" }]
+requires-python = ">=3.11,<4.0"
 license = "MIT"
-readme = "README.md"
-packages = [{include = "src"}]
+dependencies = [
+    "fastapi>=0.113.1",
+    "uvicorn>=0.30.5",
+    "pydantic[email]>=2.9.1",
+    "pydantic-settings>=2.4.1",
+    "sqlalchemy>=2.0.33",
+    "alembic>=1.13.2",
+    "psycopg[binary]>=3.2.1",
+    "python-jose[cryptography]>=3.3.0",
+    "python-multipart>=0.0.9",
+    "celery>=5.4.0",
+    "redis>=5.1.1",
+    "flower>=2.0.1",
+    "langchain>=0.3.4",
+    "asyncpg>=0.30.0",
+    "aiosmtplib>=4.0.1",
+    "jinja2>=3.1.6",
+    "libpass[bcrypt]>=1.9.1.post0",
+    "slowapi>=0.1.9,<0.2",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-fastapi = ">=0.113.1"
-uvicorn = ">=0.30.5"
-pydantic = {version = ">=2.9.1", extras = ["email"]}
-pydantic-settings = ">=2.4.1"
-sqlalchemy = ">=2.0.33"
-alembic = ">=1.13.2"
-psycopg = {version = ">=3.2.1", extras = ["binary"]}
-python-jose = {version = ">=3.3.0", extras = ["cryptography"]}
-python-multipart = ">=0.0.9"
-celery = ">=5.4.0"
-redis = ">=5.1.1"
-flower = ">=2.0.1"
-langchain = ">=0.3.4"
-asyncpg = ">=0.30.0"
-aiosmtplib = ">=4.0.1"
-jinja2 = ">=3.1.6"
-libpass = {version = ">=1.9.1.post0", extras = ["bcrypt"]}
-slowapi = "^0.1.9"
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.23.8",
+    "httpx>=0.27.0",
+    "greenlet>=3.2.3",
+    "pytest-env>=1.1.5",
+    "asyncpg>=0.30.0,<0.31",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.4.0"
-pytest-asyncio = ">=0.23.8"
-httpx = ">=0.27.0"
-greenlet = ">=3.2.3"
-pytest-env = ">=1.1.5"
-asyncpg = "^0.30.0"
+[tool.hatch.build.targets.sdist]
+include = ["src"]
+
+[tool.hatch.build.targets.wheel]
+include = ["src"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 pythonpath = [
