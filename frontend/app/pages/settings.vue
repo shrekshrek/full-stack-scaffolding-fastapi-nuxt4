@@ -198,20 +198,6 @@ const handlePasswordSubmit = async () => {
 
 // 处理登出
 const handleSignOut = async () => {
-  try {
-    await logout()
-    toast.add({
-      title: '已成功登出',
-      description: '感谢您的使用，期待下次再见！',
-      color: 'success'
-    })
-    await navigateTo('/login')
-  } catch {
-    toast.add({
-      title: '登出失败',
-      description: '请稍后重试',
-      color: 'error'
-    })
-  }
+  await logout()
 }
 </script> 

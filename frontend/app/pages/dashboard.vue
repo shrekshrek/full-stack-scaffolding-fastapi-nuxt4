@@ -141,6 +141,5 @@ const formatDate = (date: Date) => {
 
 const handleSignOut = async () => {
   await logout()
-  await navigateTo('/login')
 }
 </script> 

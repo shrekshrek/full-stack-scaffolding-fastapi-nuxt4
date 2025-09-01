@@ -358,7 +358,6 @@ const userMenuItems = computed(
 const handleSignOut = async () => {
   try {
     await logout();
-    await navigateTo("/login");
   } catch (error) {
     console.error("Logout error:", error);
   } finally {

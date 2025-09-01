@@ -82,15 +82,22 @@ export const useAuthApi = () => {
         method: 'POST'
       })
       
-      // 清除本地store
+      // 确保前端状态完全清除
       userStore.clearUser()
+      await clearSession()
       
       showSuccess('已安全退出登录')
+      
+      // 统一在这里处理跳转，避免调用方重复处理
+      await navigateTo('/')
     } catch (error) {
       console.error('Logout error:', error)
       // 确保清除本地状态
-      await clearSession()
       userStore.clearUser()
+      await clearSession()
+      
+      // 即使出错也跳转到安全页面
+      await navigateTo('/')
     }
   }
   
