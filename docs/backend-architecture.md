@@ -24,14 +24,13 @@
 ### 1.1 技术栈
 - **核心框架**: FastAPI
 - **数据库**: PostgreSQL + SQLAlchemy (ORM) + Alembic (迁移)
-- **包管理**: Poetry
 - **异步任务**: Celery + Redis
 - **部署**: Docker
 - **认证**: JWT + OAuth2
 - **权限**: RBAC (Role-Based Access Control 基于角色的访问控制)
 - **任务队列**: Celery + Redis
 - **迁移**: Alembic
-- **包管理**: Poetry
+- **包管理**: uv
 
 ### 1.2 架构特点
 - **领域驱动设计**: 按业务领域划分模块
@@ -58,11 +57,10 @@ backend/
 │   ├── exceptions.py        # 全局异常定义
 │   ├── pagination.py        # 分页工具
 │   ├── utils.py             # 通用工具函数
-│   ├── redis.py             # Redis连接配置
+│   ├── redis_client.py      # Redis连接配置
 │   └── celery_app.py        # Celery应用配置
 ├── alembic/                 # 数据库迁移
-├── tests/                   # 测试文件
-└── requirements/            # 依赖文件
+└── tests/                   # 测试文件
 ```
 
 ### 2.2 模块设计原则
@@ -75,10 +73,10 @@ backend/
 ## 3. 模块详细说明
 
 ### 3.1 认证模块 (auth/)
-**职责**: 用户认证、JWT令牌管理、密码重置
+**职责**: 用户认证、JWT令牌管理
 
 **主要组件**:
-- `models.py`: User、PasswordResetToken数据模型
+- `models.py`: User数据模型
 - `router.py`: 注册、登录、令牌刷新等API端点
 - `service.py`: 用户创建、验证、密码处理等业务逻辑
 - `security.py`: JWT生成/验证、密码哈希等安全工具
@@ -89,7 +87,6 @@ backend/
 **核心功能**:
 - 用户注册和登录
 - JWT令牌生成和验证
-- 密码重置功能
 - 令牌黑名单管理
 
 ### 3.2 权限管理模块 (rbac/)
@@ -145,7 +142,6 @@ backend/
 
 ### 4.1 数据表概览
 - `users`: 用户基础信息
-- `password_reset_tokens`: 密码重置令牌
 - `roles`: 角色定义
 - `permissions`: 权限定义
 - `role_permissions`: 角色-权限关联表
@@ -157,7 +153,7 @@ backend/
 ```sql
 - id: SERIAL PRIMARY KEY
 - username: VARCHAR(50) UNIQUE NOT NULL
-- email: VARCHAR(100) UNIQUE NOT NULL  
+- email: VARCHAR(100) UNIQUE NULL  
 - hashed_password: VARCHAR NOT NULL
 - created_at: TIMESTAMP DEFAULT NOW()
 - updated_at: TIMESTAMP DEFAULT NOW()
@@ -190,7 +186,6 @@ backend/
 ### 4.3 关系设计
 - **用户-角色**: 多对多关系，通过`user_roles`表关联
 - **角色-权限**: 多对多关系，通过`role_permissions`表关联
-- **用户-密码重置**: 一对多关系，一个用户可以有多个重置令牌
 
 ### 4.4 预设数据
 
@@ -224,8 +219,6 @@ backend/
 - `POST /token`: 用户登录，获取访问令牌
 - `POST /token/refresh`: 刷新访问令牌
 - `POST /logout`: 用户登出
-- `POST /request-password-reset`: 请求密码重置
-- `POST /reset-password`: 重置密码
 
 ### 5.3 用户管理端点 (/api/v1/users)
 - `GET /me`: 获取当前用户信息
@@ -268,45 +261,9 @@ backend/
 
 ## 7. 配置管理
 
-### 7.1 配置文件
-使用`pydantic-settings`从环境变量和`.env`文件加载配置
+使用 `pydantic-settings` 从环境变量和 `.env` 文件加载配置。
 
-### 7.2 主要配置项
-
-**开发环境** (`.env`):
-```python
-# 环境设置
-ENVIRONMENT = "development"
-
-# 数据库设置  
-DATABASE_URL = "postgresql+psycopg://user:password@localhost/dbname"
-
-# Redis设置
-REDIS_URL = "redis://localhost:6379"
-
-# API设置
-API_PREFIX = "/api/v1"
-PROJECT_NAME = "Full-Stack Starter API"
-
-# 认证设置
-SECRET_KEY = "development_secret_key"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-```
-
-**生产环境** (`.env.production`):
-```python
-# 所有服务统一配置
-ENVIRONMENT = "production"
-
-# 数据库设置  
-POSTGRES_PASSWORD = "CHANGE_THIS_STRONG_PASSWORD"
-DATABASE_URL = "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@postgres_db:5432/fastapi_db"
-
-# 认证设置
-SECRET_KEY = "CHANGE_THIS_USE_OPENSSL_RAND_HEX_32"
-NUXT_SESSION_PASSWORD = "CHANGE_THIS_MUST_BE_AT_LEAST_32_CHARS"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
-```
+详细配置说明见：[配置管理指南](./CONFIGURATION.md)
 
 ---
 
@@ -324,8 +281,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 3. 在路由中应用权限检查：`Depends(require_permission)`
 
 **系统级保护注意事项**:
-- 新增系统级权限时，需在 `SYSTEM_PERMISSIONS` 列表中声明
-- 新增系统级角色时，需在 `SYSTEM_ROLES` 列表中声明
+- 新增系统级权限时，在 `BASE_PERMISSIONS` 中添加权限定义
+- 新增系统级角色时，在 `BASE_ROLES` 中添加角色定义
 - 系统级项目的 `is_system` 字段会在初始化时自动设置
 - 删除和更新系统级项目会被自动拦截，确保系统稳定性
 
@@ -341,58 +298,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 ---
 
-## 9. 项目复制指南
+## 9. 常见问题
 
-### 9.1 环境配置说明
-
-**项目有两套环境配置：**
-
-- **开发环境 `.env`**: 本地开发配置，Docker容器间通信
-- **生产环境 `.env.production`**: 统一的生产环境配置，所有服务共享
-
-从v2.0起，生产环境配置已统一到根目录的`.env.production`文件，避免配置不一致的问题。
-
-### 9.2 创建新项目
-
-**需要修改的配置文件：**
-
-1. **docker-compose.yml**
-   - 数据库名：`POSTGRES_DB: my_new_project_db`
-   - 端口：`"5433:5432"` (避免冲突)
-   - 容器名：`container_name: mynewproject_postgres`
-
-2. **.env** (开发环境)
-   - `DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5433/my_new_project_db`
-   - `PROJECT_NAME=My New Project API`
-
-3. **.env.production** (生产环境)
-   - 复制 `.env.production.example` 并更新所有 `CHANGE_THIS_` 占位符
-   - 使用 `openssl` 生成安全密钥
-
-4. **package.json**
-   - `"be:db:cli": "docker-compose exec postgres-db psql -U postgres -d my_new_project_db"`
-
-### 9.3 操作步骤
-
-```bash
-# 1. 复制项目
-cp -r fullstack-starter my-new-project
-cd my-new-project
-
-# 2. 修改上述配置文件
-
-# 3. 启动项目
-docker-compose up -d
-pnpm install
-pnpm be:migrate
-pnpm dev
-```
-
----
-
-## 10. 常见问题
-
-### 10.1 权限检查
+### 9.1 权限检查
 **问题**: 如何为API端点添加权限检查？
 **解决**: 使用`rbac/dependencies.py`中的权限依赖：
 ```python
@@ -400,7 +308,7 @@ pnpm dev
 async def get_users(): ...
 ```
 
-### 10.5 系统级保护机制
+### 9.2 系统级保护机制
 **问题**: 如何理解系统级角色和权限的保护机制？
 **解决**: 
 - **删除保护**: 系统级项目无法通过API删除，会返回400错误
@@ -408,28 +316,20 @@ async def get_users(): ...
 - **数据初始化**: 通过 `init_rbac_data()` 函数自动标记系统级项目
 - **安全边界**: 系统级权限确保核心功能，业务级权限支持灵活扩展
 
-### 10.2 数据库迁移
+### 9.3 数据库迁移
 **问题**: 如何创建和应用数据库迁移？
 **解决**: 
 ```bash
 # 创建迁移
-pnpm be:migration "migration description"
+pnpm be:migrate:make "migration description"
 
 # 应用迁移
-pnpm be:migrate
+pnpm be:migrate:up
 ```
 
-### 10.3 异步操作
+### 9.4 异步操作
 **问题**: 什么时候使用async/await？
 **解决**: 所有涉及数据库、外部API、文件I/O的操作都应该使用async/await
-
-### 10.4 项目复制问题
-**问题**: 复制项目后出现端口冲突或数据混淆？
-**解决**: 
-1. 检查 `docker-compose.yml` 中的端口配置
-2. 确认容器名称和数据卷名称已修改
-3. 验证 `.env` 文件中的连接配置
-4. 重启Docker服务：`docker-compose down && docker-compose up -d`
 
 ---
 

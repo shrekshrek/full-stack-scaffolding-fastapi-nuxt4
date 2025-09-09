@@ -1,272 +1,453 @@
 """
 RBAC 初始化数据脚本
 用于创建基础的权限和角色数据
+
+包含权限模板函数，用于快速创建新模块的标准权限集
 """
 
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from src.rbac import models, service, schemas
+from src.rbac.models import SystemRoles
 
-# 系统级权限（不可删除）
-SYSTEM_PERMISSIONS = [
-    'user:read',
-    'user:write', 
-    'user:delete',
-    'role:read',
-    'role:write',
-    'role:delete',
-    'permission:read',
-    'permission:write',
-    'permission:delete'
-]
+logger = logging.getLogger(__name__)
 
-# 系统级角色（不可删除）
-SYSTEM_ROLES = [
-    'super_admin',  # 拥有所有权限
-    'admin',        # 拥有管理权限
-    'user'          # 基础用户权限
-]
 
-# 基础权限定义
-BASE_PERMISSIONS = [
-    # 用户管理权限（系统级）
-    {
-        "name": "user:read",
-        "display_name": "查看用户",
-        "resource": "user",
-        "action": "read",
-        "description": "查看用户信息",
-        "is_system": True
-    },
-    {
-        "name": "user:write",
-        "display_name": "编辑用户",
-        "resource": "user",
-        "action": "write",
-        "description": "创建和编辑用户信息",
-        "is_system": True
-    },
-    {
-        "name": "user:delete",
-        "display_name": "删除用户",
-        "resource": "user",
-        "action": "delete",
-        "description": "删除用户",
-        "is_system": True
-    },
-    
-    # 角色管理权限（系统级）
-    {
-        "name": "role:read",
-        "display_name": "查看角色",
-        "resource": "role",
-        "action": "read",
-        "description": "查看角色信息",
-        "is_system": True
-    },
-    {
-        "name": "role:write",
-        "display_name": "编辑角色",
-        "resource": "role",
-        "action": "write",
-        "description": "创建和编辑角色",
-        "is_system": True
-    },
-    {
-        "name": "role:delete",
-        "display_name": "删除角色",
-        "resource": "role",
-        "action": "delete",
-        "description": "删除角色",
-        "is_system": True
-    },
-    
-    # 权限管理权限（系统级）
-    {
-        "name": "permission:read",
-        "display_name": "查看权限",
-        "resource": "permission",
-        "action": "read",
-        "description": "查看权限信息",
-        "is_system": True
-    },
-    {
-        "name": "permission:write",
-        "display_name": "编辑权限",
-        "resource": "permission",
-        "action": "write",
-        "description": "创建和编辑权限",
-        "is_system": True
-    },
-    {
-        "name": "permission:delete",
-        "display_name": "删除权限",
-        "resource": "permission",
-        "action": "delete",
-        "description": "删除权限",
-        "is_system": True
-    },
-    
-    # 页面访问权限
-    {
-        "name": "page:dashboard",
-        "display_name": "访问工作台",
-        "resource": "page",
-        "action": "access",
-        "description": "访问工作台页面",
-        "is_system": False  # 工作台是业务展示，非RBAC核心
-    },
-    {
-        "name": "page:users",
-        "display_name": "访问用户管理",
-        "resource": "page",
-        "action": "access",
-        "description": "访问用户管理页面",
-        "is_system": True   # 用户管理是RBAC核心功能
-    },
-    {
-        "name": "page:roles",
-        "display_name": "访问角色管理",
-        "resource": "page",
-        "action": "access",
-        "description": "访问角色管理页面",
-        "is_system": True   # 角色管理是RBAC核心功能
-    },
-    {
-        "name": "page:permissions",
-        "display_name": "访问权限管理",
-        "resource": "page",
-        "action": "access",
-        "description": "访问权限管理页面",
-        "is_system": True   # 权限管理是RBAC核心功能
-    },
-]
+# ============================================================================
+# 权限模板函数（用于快速创建新模块权限）
+# ============================================================================
 
-# 基础角色定义
-BASE_ROLES = [
-    {
-        "name": "super_admin",
-        "display_name": "超级管理员",
-        "description": "超级管理员，拥有所有权限",
-        "is_system": True,
-        "permissions": [
-            "user:read", "user:write", "user:delete",
-            "role:read", "role:write", "role:delete",
-            "permission:read", "permission:write", "permission:delete",
-            "page:dashboard", "page:users", "page:roles", "page:permissions"
-        ]
-    },
-    {
-        "name": "admin",
-        "display_name": "管理员",
-        "description": "系统管理员，拥有管理权限",
-        "is_system": True,
-        "permissions": [
-            "user:read", "user:write", "user:delete",
-            "role:read", "role:write",
-            "permission:read",
-            "page:dashboard", "page:users", "page:roles", "page:permissions"
-        ]
-    },
-    {
-        "name": "user",
-        "display_name": "普通用户",
-        "description": "普通用户，只能访问基础功能",
-        "is_system": True,
-        "permissions": [
-            "page:dashboard"
-        ]
+
+def create_module_permissions(
+    module_name: str,
+    actions: list[str],
+    display_names: dict[str, str] = None,
+    descriptions: dict[str, str] = None,
+) -> list[dict]:
+    """
+    快速创建模块权限集
+
+    Args:
+        module_name: 模块名，如 "reports"
+        actions: 权限动作列表，如 ["access", "read", "export"]
+        display_names: 自定义显示名称 (可选)
+        descriptions: 自定义描述 (可选)
+
+    Returns:
+        权限定义列表
+
+    常用权限组合：
+    - ["access"] - 仅页面访问（最简单）
+    - ["access", "read"] - 页面 + 查看数据
+    - ["access", "read", "write"] - 页面 + 增改操作
+    - ["access", "read", "write", "delete"] - 完整CRUD
+    - ["access", "read", "export"] - 页面 + 查看 + 导出
+    - ["access", "read", "write", "export"] - 管理 + 导出
+    """
+    default_display_names = {
+        "access": f"访问{module_name}",
+        "read": f"查看{module_name}",
+        "write": f"编辑{module_name}",
+        "delete": f"删除{module_name}",
+        "export": f"导出{module_name}",
+        "approve": f"审批{module_name}",
+        "publish": f"发布{module_name}",
+        "import": f"导入{module_name}",
+        "manage": f"管理{module_name}",
     }
-]
 
+    default_descriptions = {
+        "access": f"允许访问{module_name}页面和基础功能",
+        "read": f"允许查看{module_name}的详细数据和列表",
+        "write": f"允许创建、编辑{module_name}的数据",
+        "delete": f"允许删除{module_name}的数据",
+        "export": f"允许导出{module_name}的数据",
+        "approve": f"允许审批{module_name}相关流程",
+        "publish": f"允许发布{module_name}到外部系统",
+        "import": f"允许导入{module_name}数据",
+        "manage": f"允许管理{module_name}的高级设置",
+    }
 
-async def init_permissions(db: AsyncSession) -> dict[str, models.Permission]:
-    """初始化权限数据"""
-    permissions = {}
-    
-    for perm_data in BASE_PERMISSIONS:
-        # 检查权限是否已存在
-        existing = await service.get_permission_by_name(db, perm_data["name"])
-        if existing:
-            # 更新现有权限的is_system字段
-            existing.is_system = perm_data["is_system"]
-            await db.commit()
-            await db.refresh(existing)
-            permissions[perm_data["name"]] = existing
-            continue
-        
-        # 创建新权限
-        try:
-            permission = await service.create_permission(
-                db, 
-                schemas.PermissionCreate(**perm_data)
-            )
-            permissions[perm_data["name"]] = permission
-            print(f"Created permission: {perm_data['name']}")
-        except service.PermissionAlreadyExistsException:
-            # 如果在并发情况下权限已被创建，重新获取
-            existing = await service.get_permission_by_name(db, perm_data["name"])
-            permissions[perm_data["name"]] = existing
-    
+    permissions = []
+    for action in actions:
+        display_name = (display_names or {}).get(action) or default_display_names.get(
+            action, f"{action.title()} {module_name}"
+        )
+        description = (descriptions or {}).get(action) or default_descriptions.get(
+            action, f"允许对{module_name}进行{action}操作"
+        )
+
+        permissions.append(
+            {
+                "target": module_name,
+                "action": action,
+                "display_name": display_name,
+                "description": description,
+            }
+        )
+
     return permissions
 
 
-async def init_roles(db: AsyncSession, permissions: dict[str, models.Permission]) -> dict[str, models.Role]:
-    """初始化角色数据"""
+# ============================================================================
+# 系统核心权限（RBAC核心功能，开发者通常不需要修改）
+# ============================================================================
+CORE_PERMISSIONS = [
+    # 用户管理权限
+    {
+        "target": "user",
+        "action": "read",
+        "display_name": "查看用户",
+        "description": "查看用户信息和列表",
+    },
+    {
+        "target": "user",
+        "action": "write",
+        "display_name": "编辑用户",
+        "description": "创建和编辑用户信息",
+    },
+    {
+        "target": "user",
+        "action": "delete",
+        "display_name": "删除用户",
+        "description": "删除用户账户",
+    },
+    # 角色管理权限
+    {
+        "target": "role",
+        "action": "read",
+        "display_name": "查看角色",
+        "description": "查看角色信息和权限配置",
+    },
+    {
+        "target": "role",
+        "action": "write",
+        "display_name": "编辑角色",
+        "description": "创建和编辑角色及权限分配",
+    },
+    {
+        "target": "role",
+        "action": "delete",
+        "display_name": "删除角色",
+        "description": "删除自定义角色",
+    },
+    # 权限管理权限
+    {
+        "target": "permission",
+        "action": "read",
+        "display_name": "查看权限",
+        "description": "查看系统权限列表和配置",
+    },
+    {
+        "target": "permission",
+        "action": "write",
+        "display_name": "编辑权限",
+        "description": "临时权限管理（不推荐使用）",
+    },
+    {
+        "target": "permission",
+        "action": "delete",
+        "display_name": "删除权限",
+        "description": "删除临时权限（不推荐使用）",
+    },
+    # RBAC管理页面访问权限
+    {
+        "target": "user_mgmt",
+        "action": "access",
+        "display_name": "访问用户管理",
+        "description": "允许访问用户管理页面",
+    },
+    {
+        "target": "role_mgmt",
+        "action": "access",
+        "display_name": "访问角色管理",
+        "description": "允许访问角色管理页面",
+    },
+    {
+        "target": "perm_mgmt",
+        "action": "access",
+        "display_name": "访问权限管理",
+        "description": "允许访问权限管理页面",
+    },
+]
+
+# ============================================================================
+# 业务功能权限（开发者在此直接添加新模块权限）
+# ============================================================================
+BUSINESS_PERMISSIONS = [
+    # 基础业务模块（使用模板函数，1行即可！）
+    *create_module_permissions("dashboard", ["access"]),
+    # ========================================================================
+    # 新模块权限添加示例（开发者只需1行代码！）
+    # ========================================================================
+    #
+    # 📝 使用说明：
+    # 1. 取消注释下面对应的行
+    # 2. 修改模块名和权限组合
+    # 3. 重启服务（`pnpm dev`）自动同步到数据库
+    #
+    # 🎯 常用模板：
+    #
+    # 📊 报表模块（页面 + 查看 + 导出）
+    # *create_module_permissions("reports", ["access", "read", "export"]),
+    #
+    # 📈 数据分析（页面 + 查看 + 导出）
+    # *create_module_permissions("analytics", ["access", "read", "export"]),
+    #
+    # 📄 文档管理（完整CRUD）
+    # *create_module_permissions("documents", ["access", "read", "write", "delete"]),
+    #
+    # 🔔 通知系统（自定义权限名称）
+    # *create_module_permissions("notifications", ["access", "read", "send"], {
+    #     "send": "发送通知"
+    # }),
+    #
+    # 📦 库存管理（完整管理权限）
+    # *create_module_permissions("inventory", ["access", "read", "write", "delete", "export", "import"]),
+]
+
+# 合并所有权限
+BASE_PERMISSIONS = CORE_PERMISSIONS + BUSINESS_PERMISSIONS
+
+
+# ============================================================================
+# 基础角色定义 - 基于target+action的权限分配
+# ============================================================================
+
+BASE_ROLES = [
+    {
+        "name": SystemRoles.SUPER_ADMIN,
+        "display_name": "超级管理员",
+        "description": "超级管理员，拥有所有权限",
+        "permission_strategy": "all",
+        "permissions": [],  # 智能策略：自动拥有所有权限
+    },
+    {
+        "name": SystemRoles.ADMIN,
+        "display_name": "管理员",
+        "description": "系统管理员，拥有管理权限但不能删除核心资源",
+        "permission_strategy": "admin",
+        "permissions": [],  # 智能策略：自动拥有除核心删除外的所有权限
+    },
+    {
+        "name": SystemRoles.USER,
+        "display_name": "普通用户",
+        "description": "普通用户，只能访问基础功能",
+        "permission_strategy": "explicit",
+        "permissions": [
+            # 明确权限：仅基础页面访问
+            {"target": "dashboard", "action": "access"},
+        ],
+    },
+]
+
+
+async def init_permissions_legacy(db: AsyncSession) -> dict[str, models.Permission]:
+    """初始化权限数据 - 基于target+action的新逻辑"""
+    permissions = {}
+
+    for perm_data in BASE_PERMISSIONS:
+        target = perm_data["target"]
+        action = perm_data["action"]
+        permission_key = f"{target}:{action}"
+
+        # 检查权限是否已存在（基于target+action）
+        existing = await service.get_permission_by_target_action(db, target, action)
+        if existing:
+            # 更新现有权限的显示名称和描述
+            existing.display_name = perm_data["display_name"]
+            existing.description = perm_data.get("description")
+            await db.commit()
+            await db.refresh(existing)
+            permissions[permission_key] = existing
+            continue
+
+        # 创建新权限
+        try:
+            permission = await service.create_permission(
+                db, schemas.PermissionCreate(**perm_data)
+            )
+            permissions[permission_key] = permission
+        except service.PermissionAlreadyExistsException:
+            # 如果在并发情况下权限已被创建，重新获取
+            existing = await service.get_permission_by_target_action(db, target, action)
+            permissions[permission_key] = existing
+
+    return permissions
+
+
+async def init_roles(
+    db: AsyncSession, permissions: dict[str, models.Permission]
+) -> dict[str, models.Role]:
+    """初始化角色数据 - 基于target+action的新逻辑"""
     roles = {}
-    
+
     for role_data in BASE_ROLES:
         # 检查角色是否已存在
         existing = await service.get_role_by_name(db, role_data["name"])
         if existing:
             roles[role_data["name"]] = existing
             continue
-        
-        # 获取权限ID列表
+
+        # 根据权限策略处理权限分配
         permission_ids = []
-        for perm_name in role_data["permissions"]:
-            if perm_name in permissions:
-                permission_ids.append(permissions[perm_name].id)
-        
+        permission_strategy = role_data.get("permission_strategy", "explicit")
+
+        if permission_strategy == "explicit":
+            # 明确权限策略：使用权限列表
+            for perm_dict in role_data["permissions"]:
+                permission_key = f"{perm_dict['target']}:{perm_dict['action']}"
+                if permission_key in permissions:
+                    permission_ids.append(permissions[permission_key].id)
+        # all和admin策略不需要明确权限，通过智能检查实现
+
         # 创建角色
         try:
             role_create_data = {
                 "name": role_data["name"],
                 "display_name": role_data["display_name"],
                 "description": role_data["description"],
-                "permission_ids": permission_ids
+                "permission_ids": permission_ids,
             }
-            
-            role = await service.create_role(
-                db, 
-                schemas.RoleCreate(**role_create_data)
-            )
-            
-            # 设置系统角色标志
-            if role_data["is_system"]:
-                role.is_system = True
-                await db.commit()
-                await db.refresh(role)
-            
+
+            role = await service.create_role(db, schemas.RoleCreate(**role_create_data))
+
             roles[role_data["name"]] = role
-            print(f"Created role: {role_data['name']}")
         except service.RoleAlreadyExistsException:
             # 如果在并发情况下角色已被创建，重新获取
             existing = await service.get_role_by_name(db, role_data["name"])
             roles[role_data["name"]] = existing
-    
+
     return roles
 
 
 async def init_rbac_data(db: AsyncSession) -> None:
-    """初始化RBAC数据"""
-    print("Initializing RBAC data...")
-    
-    # 初始化权限
-    permissions = await init_permissions(db)
-    print(f"Initialized {len(permissions)} permissions")
-    
-    # 初始化角色
-    roles = await init_roles(db, permissions)
-    print(f"Initialized {len(roles)} roles")
-    
-    print("RBAC data initialization completed!") 
+    """
+    初始化RBAC数据 - 完全同步模式
+    将代码定义的权限与数据库完全同步：
+    - 添加新权限
+    - 更新已有权限的显示名称和描述
+    - 删除代码中未定义的权限
+    """
+
+    # 1. 获取代码中定义的所有权限
+    defined_permissions = {f"{p['target']}:{p['action']}": p for p in BASE_PERMISSIONS}
+
+    # 2. 获取数据库中现有权限
+    result = await db.execute(text("SELECT target, action FROM permissions"))
+    db_permissions = {f"{r.target}:{r.action}" for r in result}
+
+    # 3. 计算差异
+    to_add = set(defined_permissions.keys()) - db_permissions
+    to_delete = db_permissions - set(defined_permissions.keys())
+    to_update = set(defined_permissions.keys()) & db_permissions
+
+    logger.info(
+        f"权限同步分析: 新增={len(to_add)}, 删除={len(to_delete)}, 更新={len(to_update)}"
+    )
+
+    # 4. 删除未定义的权限
+    if to_delete:
+        # 记录被删除权限的影响
+        affected = await db.execute(
+            text("""
+            SELECT p.target, p.action, COUNT(rp.id) as role_count
+            FROM permissions p
+            LEFT JOIN role_permissions rp ON p.id = rp.permission_id
+            WHERE concat(p.target, ':', p.action) = ANY(:perms)
+            GROUP BY p.target, p.action
+        """),
+            {"perms": list(to_delete)},
+        )
+
+        for row in affected:
+            if row.role_count > 0:
+                logger.warning(
+                    f"删除权限 {row.target}:{row.action}，"
+                    f"将移除 {row.role_count} 个角色分配"
+                )
+
+        # 执行删除（外键级联会自动删除 role_permissions）
+        await db.execute(
+            text("""
+            DELETE FROM permissions 
+            WHERE concat(target, ':', action) = ANY(:perms)
+        """),
+            {"perms": list(to_delete)},
+        )
+
+        logger.info(f"✅ 删除权限: {sorted(to_delete)}")
+
+    # 5. 添加新权限
+    if to_add:
+        for perm_key in to_add:
+            perm_data = defined_permissions[perm_key]
+            await db.execute(
+                text("""
+                INSERT INTO permissions (target, action, display_name, description)
+                VALUES (:target, :action, :display_name, :description)
+            """),
+                perm_data,
+            )
+
+        logger.info(f"✅ 添加权限: {sorted(to_add)}")
+
+    # 6. 更新已有权限
+    if to_update:
+        for perm_key in to_update:
+            perm_data = defined_permissions[perm_key]
+            await db.execute(
+                text("""
+                UPDATE permissions 
+                SET display_name = :display_name,
+                    description = :description
+                WHERE target = :target AND action = :action
+            """),
+                perm_data,
+            )
+
+        logger.info(f"✅ 更新权限: {len(to_update)} 个")
+
+    # 7. 重新获取所有权限用于角色初始化
+    updated_permissions = await init_permissions_legacy(db)
+
+    # 8. 初始化角色
+    await init_roles(db, updated_permissions)
+
+    logger.info(f"📊 权限同步完成，当前总计: {len(defined_permissions)} 个权限")
+
+
+# ============================================================================
+# 权限分组自动化
+# ============================================================================
+
+
+def auto_generate_permission_groups() -> dict:
+    """基于权限定义自动生成权限分组配置"""
+    organized_groups = {
+        "CORE": {"label": "系统核心权限", "permissions": []},
+        "PAGE_ACCESS": {"label": "页面访问权限", "permissions": []},
+        "BUSINESS": {"label": "业务功能权限", "permissions": []},
+    }
+
+    for permission in BASE_PERMISSIONS:
+        target = permission["target"]
+        action = permission["action"]
+        permission_key = f"{target}:{action}"
+
+        if target in [
+            "user",
+            "role",
+            "permission",
+            "user_mgmt",
+            "role_mgmt",
+            "perm_mgmt",
+        ]:
+            organized_groups["CORE"]["permissions"].append(permission_key)
+        elif action == "access":
+            organized_groups["PAGE_ACCESS"]["permissions"].append(permission_key)
+        else:
+            organized_groups["BUSINESS"]["permissions"].append(permission_key)
+
+    return organized_groups

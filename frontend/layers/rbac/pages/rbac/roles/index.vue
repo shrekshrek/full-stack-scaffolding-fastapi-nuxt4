@@ -95,8 +95,9 @@
 
 <script setup lang="ts">
 import { h, ref, computed, watch, resolveComponent } from "vue";
-import type { Role, Permission } from "../../../types";
+import type { Role, PermissionWithMeta as Permission } from "../../../types";
 import type { TableColumn } from "@nuxt/ui";
+import { isCoreRole } from "../../../utils/permissions";
 
 // 页面元数据
 definePageMeta({
@@ -195,7 +196,7 @@ const handleRefresh = async () => {
 };
 
 // 工具函数
-const formatDate = (dateString: string) => {
+const _formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "2-digit",
@@ -267,22 +268,11 @@ const columns: TableColumn<Role>[] = [
     },
   },
   {
-    accessorKey: "created_at",
-    header: "创建时间",
-    cell: ({ row }) => {
-      return h(
-        "span",
-        { class: "text-sm text-gray-500 dark:text-gray-400" },
-        formatDate(row.getValue("created_at"))
-      );
-    },
-  },
-  {
     id: "actions",
     header: "操作",
     cell: ({ row }) => {
       const UButton = resolveComponent("UButton");
-      const isSystem = row.original.is_system;
+      const isCore = isCoreRole(row.original.name);
 
       return h("div", { class: "flex items-center gap-2" }, [
         h(UButton, {
@@ -299,7 +289,7 @@ const columns: TableColumn<Role>[] = [
           icon: "i-heroicons-key",
           onClick: () => navigateTo(`/rbac/roles/${row.original.id}/permissions`),
         }),
-        !isSystem &&
+        !isCore &&
           h(UButton, {
             color: "neutral",
             variant: "ghost",
@@ -307,7 +297,7 @@ const columns: TableColumn<Role>[] = [
             icon: "i-heroicons-pencil-square",
             onClick: () => navigateTo(`/rbac/roles/${row.original.id}/edit`),
           }),
-        !isSystem &&
+        !isCore &&
           h(UButton, {
             color: "error",
             variant: "ghost",

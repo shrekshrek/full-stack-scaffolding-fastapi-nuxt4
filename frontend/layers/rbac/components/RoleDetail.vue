@@ -13,11 +13,11 @@
             <p class="text-gray-500 dark:text-gray-400">{{ role.name }}</p>
             <div class="mt-1">
               <UBadge
-                :color="role.is_system ? 'warning' : 'neutral'"
+                :color="isCoreRole(role.name) ? 'warning' : 'neutral'"
                 variant="soft"
                 size="sm"
               >
-                {{ role.is_system ? '系统角色' : '自定义角色' }}
+                {{ isCoreRole(role.name) ? '核心角色' : '自定义角色' }}
               </UBadge>
             </div>
           </div>
@@ -36,7 +36,7 @@
           </UButton>
           
           <UButton
-            v-if="canEdit && !role.is_system"
+            v-if="canEdit && !isCoreRole(role?.name)"
             icon="i-heroicons-pencil-square"
             variant="outline"
             size="sm"
@@ -47,7 +47,7 @@
           </UButton>
           
           <UButton
-            v-if="canDelete && !role.is_system"
+            v-if="canDelete && !isCoreRole(role?.name)"
             icon="i-heroicons-trash"
             variant="outline"
             size="sm"
@@ -76,11 +76,11 @@
         <div class="space-y-1">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">类型</label>
           <UBadge
-            :color="role.is_system ? 'warning' : 'neutral'"
+            :color="isCoreRole(role?.name) ? 'warning' : 'neutral'"
             variant="soft"
             size="sm"
           >
-            {{ role.is_system ? '系统角色' : '自定义角色' }}
+            {{ isCoreRole(role?.name) ? '核心角色' : '自定义角色' }}
           </UBadge>
         </div>
         
@@ -109,19 +109,15 @@
         </div>
       </div>
 
-      <!-- 时间信息 -->
+      <!-- 角色管理说明 -->
       <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">创建时间</label>
-            <p class="text-gray-900 dark:text-gray-100">{{ formatDate(role.created_at) }}</p>
-          </div>
-          
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">更新时间</label>
-            <p class="text-gray-900 dark:text-gray-100">{{ formatDate(role.updated_at) }}</p>
-          </div>
-        </div>
+        <UAlert
+          color="info"
+          variant="soft"
+          icon="i-heroicons-information-circle"
+          title="角色管理说明"
+          description="核心角色（super_admin, admin, user）由系统管理，自定义角色可以通过界面编辑。"
+        />
       </div>
     </div>
   </UCard>
@@ -135,6 +131,7 @@
 
 <script setup lang="ts">
 import type { Role } from '../types'
+import { isCoreRole } from '../utils/permissions'
 
 // Props
 interface Props {
@@ -156,13 +153,4 @@ const _emit = defineEmits<{
   'delete': []
 }>()
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
 </script> 

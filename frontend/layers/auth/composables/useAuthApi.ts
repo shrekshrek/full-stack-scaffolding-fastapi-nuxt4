@@ -21,21 +21,24 @@ export const useAuthApi = () => {
         method: 'POST',
         body: {
           email: data.email,
-          username: data.username || data.email.split('@')[0],
+          username: data.username,
           password: data.password
         }
       })
       
       // 注册成功后自动登录
       await login({
-        username: data.email,
+        username: data.username,
         password: data.password
       })
       
       showSuccess('注册成功！已自动登录')
       return result
     } catch (error: unknown) {
-      const message = (error as StandardError)?.data?.detail || '注册失败'
+      const message = (error as StandardError)?.data?.error?.message 
+        || (error as StandardError)?.data?.detail 
+        || (error as StandardError)?.data?.statusMessage 
+        || '注册失败'
       showError(message)
       throw error
     }
@@ -66,7 +69,10 @@ export const useAuthApi = () => {
       showSuccess('登录成功！')
       return result
     } catch (error: unknown) {
-      const message = (error as StandardError)?.data?.statusMessage || '登录失败'
+      const message = (error as StandardError)?.data?.error?.message 
+        || (error as StandardError)?.data?.statusMessage 
+        || (error as StandardError)?.data?.detail 
+        || '登录失败'
       showError(message)
       throw error
     }
@@ -147,7 +153,39 @@ export const useAuthApi = () => {
       showSuccess('密码重置成功！请使用新密码登录')
       return result
     } catch (error: unknown) {
-      const message = (error as StandardError)?.data?.detail || '密码重置失败'
+      const message = (error as StandardError)?.data?.error?.message 
+        || (error as StandardError)?.data?.detail 
+        || (error as StandardError)?.data?.statusMessage 
+        || '密码重置失败'
+      showError(message)
+      throw error
+    }
+  }
+  
+  /**
+   * 修改当前用户密码
+   */
+  const changePassword = async (data: { current_password: string; new_password: string }) => {
+    try {
+      // 确保用户已登录
+      if (!session.value?.accessToken) {
+        throw new Error('未登录')
+      }
+      
+      const result = await $fetch<Msg>('/api/v1/auth/change-password', {
+        method: 'POST',
+        body: data,
+        headers: {
+          'Authorization': `Bearer ${session.value.accessToken}`
+        }
+      })
+      
+      showSuccess('密码修改成功！')
+      return result
+    } catch (error: unknown) {
+      const message = (error as StandardError)?.data?.error?.message 
+        || (error as StandardError)?.data?.detail 
+        || '密码修改失败'
       showError(message)
       throw error
     }
@@ -160,5 +198,6 @@ export const useAuthApi = () => {
     getMe,
     requestPasswordReset,
     resetPassword,
+    changePassword,
   }
 } 

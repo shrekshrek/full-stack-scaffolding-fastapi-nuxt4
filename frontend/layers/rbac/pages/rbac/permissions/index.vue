@@ -5,20 +5,14 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          权限管理
+          权限查看
         </h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">
-          管理系统中的所有权限
+          查看系统中定义的所有权限，权限通过代码管理
         </p>
       </div>
 
       <div class="flex items-center gap-3">
-        <UButton
-          icon="i-heroicons-plus"
-          @click="navigateTo('/rbac/permissions/create')"
-        >
-          新增权限
-        </UButton>
         <UButton
           variant="outline"
           icon="i-heroicons-arrow-path"
@@ -29,6 +23,25 @@
         </UButton>
       </div>
     </div>
+
+    <!-- 代码驱动权限管理说明 -->
+    <UAlert
+      color="info"
+      variant="soft"
+      icon="i-heroicons-information-circle"
+      title="权限管理说明"
+    >
+      <template #description>
+        <div class="space-y-2">
+          <p><strong>权限定义</strong>：所有权限通过代码定义（<code>backend/src/rbac/init_data.py</code>），确保版本控制和环境一致性。</p>
+          <p><strong>权限分配</strong>：使用角色管理页面为角色分配权限，使用用户管理页面为用户分配角色。</p>
+          <div class="flex gap-2 mt-3">
+            <UButton size="sm" @click="navigateTo('/rbac/roles')">管理角色权限</UButton>
+            <UButton size="sm" variant="outline" @click="navigateTo('/users')">管理用户角色</UButton>
+          </div>
+        </div>
+      </template>
+    </UAlert>
 
     <!-- 权限列表卡片 -->
     <UCard>
@@ -95,7 +108,7 @@
 
 <script setup lang="ts">
 import { h, ref, computed, watch, resolveComponent } from "vue";
-import type { Permission } from "../../../types";
+import type { PermissionWithMeta as Permission } from "../../../types";
 import type { TableColumn } from "@nuxt/ui";
 
 // 页面元数据
@@ -155,10 +168,10 @@ const displayPermissions = computed(() => {
   const query = searchQuery.value.toLowerCase();
   return items.filter(
     (permission) =>
-      permission.name.toLowerCase().includes(query) ||
       permission.display_name.toLowerCase().includes(query) ||
-      permission.resource.toLowerCase().includes(query) ||
+      permission.target.toLowerCase().includes(query) ||
       permission.action.toLowerCase().includes(query) ||
+      `${permission.target}:${permission.action}`.toLowerCase().includes(query) ||
       (permission.description &&
         permission.description.toLowerCase().includes(query))
   );
@@ -196,8 +209,24 @@ const handleRefresh = async () => {
   }
 };
 
+// 权限类型分类函数 - 基于业务逻辑重新分类
+const getPermissionCategory = (permission: Permission): { label: string; color: "primary" | "secondary" | "success" | "warning" | "error" | "info" | "neutral" } => {
+  // 页面访问权限
+  if (permission.action === 'access') {
+    return { label: '页面访问', color: 'info' }
+  }
+  
+  // RBAC核心权限
+  if (['user', 'role', 'permission'].includes(permission.target)) {
+    return { label: 'RBAC核心', color: 'warning' }
+  }
+  
+  // 业务功能权限
+  return { label: '业务功能', color: 'success' }
+}
+
 // 工具函数
-const formatDate = (dateString: string) => {
+const _formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "2-digit",
@@ -223,23 +252,23 @@ const columns: TableColumn<Permission>[] = [
         h(
           "span",
           { class: "text-sm text-gray-500 dark:text-gray-400" },
-          row.original.name || "-"
+          `${row.original.target}:${row.original.action}`
         ),
       ]);
     },
   },
   {
-    accessorKey: "resource",
-    header: "资源:操作",
+    accessorKey: "target",
+    header: "目标:操作",
     cell: ({ row }) => {
       const UBadge = resolveComponent("UBadge");
-      const resource = row.getValue("resource") as string;
+      const target = row.getValue("target") as string;
       const action = row.original.action as string;
       return h("div", { class: "flex items-center space-x-2" }, [
         h(
           UBadge,
           { color: "primary", variant: "soft" },
-          () => resource || "未知"
+          () => target || "未知"
         ),
         h("span", { class: "text-gray-400" }, ":"),
         h(
@@ -262,96 +291,37 @@ const columns: TableColumn<Permission>[] = [
     },
   },
   {
-    accessorKey: "is_system",
-    header: "类型",
+    accessorKey: "resource",
+    header: "权限类型",
     cell: ({ row }) => {
       const UBadge = resolveComponent("UBadge");
-      const isSystem = row.getValue("is_system") as boolean;
+      const permission = row.original;
+      const { label, color } = getPermissionCategory(permission);
+      
       return h(
         UBadge,
         {
-          color: isSystem ? "warning" : "neutral",
+          color,
           variant: "soft",
         },
-        () => (isSystem ? "系统权限" : "自定义权限")
+        () => label
       );
     },
   },
   {
-    accessorKey: "created_at",
-    header: "创建时间",
-    cell: ({ row }) => {
-      return h(
-        "span",
-        { class: "text-sm text-gray-500 dark:text-gray-400" },
-        formatDate(row.getValue("created_at"))
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "操作",
+    id: "view",
+    header: "查看详情",
     cell: ({ row }) => {
       const UButton = resolveComponent("UButton");
-      const isSystem = row.original.is_system;
 
-      return h("div", { class: "flex items-center gap-2" }, [
-        h(UButton, {
-          color: "neutral",
-          variant: "ghost",
-          size: "sm",
-          icon: "i-heroicons-eye",
-          onClick: () => navigateTo(`/rbac/permissions/${row.original.id}`),
-        }),
-        !isSystem &&
-          h(UButton, {
-            color: "neutral",
-            variant: "ghost",
-            size: "sm",
-            icon: "i-heroicons-pencil-square",
-            onClick: () => navigateTo(`/rbac/permissions/${row.original.id}/edit`),
-          }),
-        !isSystem &&
-          h(UButton, {
-            color: "error",
-            variant: "ghost",
-            size: "sm",
-            icon: "i-heroicons-trash",
-            onClick: () => confirmDeletePermission(row.original),
-          }),
-      ].filter(Boolean));
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        size: "sm",
+        icon: "i-heroicons-eye",
+        onClick: () => navigateTo(`/rbac/permissions/${row.original.id}`),
+      });
     },
   },
 ];
-
-// 删除权限确认
-const confirmDeletePermission = async (permission: Permission) => {
-  try {
-    const { $confirm } = useNuxtApp();
-    const confirmed = await $confirm(
-      `确定要删除权限 "${permission.display_name}" 吗？此操作不可撤销。`
-    );
-    if (!confirmed) return;
-
-    await rbacApi.deletePermission(permission.id);
-
-    // 显示成功消息
-    const toast = useToast();
-    toast.add({
-      title: "删除成功",
-      description: `权限 "${permission.display_name}" 已被删除`,
-      color: "success",
-    });
-
-    await handleRefresh();
-  } catch {
-    // 显示错误消息
-    const toast = useToast();
-    toast.add({
-      title: "删除失败",
-      description: "无法删除权限，请稍后重试",
-      color: "error",
-    });
-  }
-};
 </script>

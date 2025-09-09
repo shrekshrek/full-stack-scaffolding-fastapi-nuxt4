@@ -1,5 +1,3 @@
-import { requiresAuthentication } from '../../../config/api-auth'
-
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   
@@ -14,8 +12,9 @@ export default defineEventHandler(async (event) => {
   // 获取请求方法
   const method = getMethod(event)
   
-  // 使用统一配置检查是否需要认证
-  const needsAuth = requiresAuthentication(cleanPath)
+  // 简化的API认证检查（内联逻辑）
+  const publicPaths = ['/auth/login', '/auth/register', '/auth/token', '/auth/logout', '/auth/request-password-reset', '/auth/reset-password']
+  const needsAuth = cleanPath && !publicPaths.some(p => cleanPath === p || cleanPath.startsWith(p + '/'))
   
   // 准备请求头，过滤掉可能有问题的头部
   const headers: Record<string, string> = {}

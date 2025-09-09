@@ -37,12 +37,6 @@
     </UForm>
 
     <div class="mt-8 text-center space-y-4">
-      <NuxtLink
-        to="/request-password-reset"
-        class="text-sm text-blue-600 hover:text-blue-500 block"
-      >
-        忘记密码？
-      </NuxtLink>
       <div class="text-sm text-gray-600">
         还没有账户？
         <NuxtLink

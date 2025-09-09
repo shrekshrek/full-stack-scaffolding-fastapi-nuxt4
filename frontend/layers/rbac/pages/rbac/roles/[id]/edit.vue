@@ -27,10 +27,10 @@
           <h2 class="text-lg font-semibold">角色信息</h2>
           <UBadge
             v-if="role"
-            :color="role.is_system ? 'warning' : 'neutral'"
+            :color="isCoreRole(role?.name) ? 'warning' : 'neutral'"
             variant="soft"
           >
-            {{ role.is_system ? '系统角色' : '自定义角色' }}
+            {{ isCoreRole(role?.name) ? '核心角色' : '自定义角色' }}
           </UBadge>
         </div>
       </template>
@@ -54,6 +54,7 @@
 <script setup lang="ts">
 import type { Role, RoleUpdate } from "../../../../types";
 import RoleForm from "../../../../components/RoleForm.vue";
+import { isCoreRole } from "../../../../utils/permissions";
 
 // 页面元数据
 definePageMeta({

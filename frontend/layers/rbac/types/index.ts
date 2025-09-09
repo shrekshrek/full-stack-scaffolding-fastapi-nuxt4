@@ -1,41 +1,25 @@
-// RBAC 相关类型定义
+/**
+ * RBAC 模块类型定义
+ * 包含角色管理相关的所有业务类型
+ */
 
-// 重新导出通用类型（来自根级别类型定义）
-export type { PaginationParams, PaginatedResponse } from '../../../types/common'
+// 导入基础类型（来自全局）
+import type { Role } from '../../../types/user'
+import type { Permission, PermissionWithMeta } from '../../../types/permissions'
+import type { PaginationParams, PaginatedResponse } from '../../../types/common'
 
-export interface Role {
-  id: number
-  name: string
-  display_name: string
-  description?: string
-  is_system: boolean
-  created_at: string
-  updated_at: string
-  permissions?: Permission[]
-}
+// 重新导出基础类型，便于模块内部使用
+export type { Role, Permission, PermissionWithMeta, PaginationParams, PaginatedResponse }
 
-export interface Permission {
-  id: number
-  name: string
-  display_name: string
-  resource: string
-  action: string
-  description?: string
-  is_system: boolean
-  created_at: string
-  updated_at: string
-}
-
+// 关联表类型
 export interface RolePermission {
   role_id: number
   permission_id: number
-  created_at: string
 }
 
 export interface UserRole {
   user_id: number
   role_id: number
-  created_at: string
 }
 
 // 表单相关类型
@@ -52,18 +36,14 @@ export interface RoleUpdate {
 }
 
 export interface PermissionCreate {
-  name: string
-  display_name: string
-  resource: string
+  target: string
   action: string
+  display_name: string
   description?: string
 }
 
 export interface PermissionUpdate {
-  name?: string
   display_name?: string
-  resource?: string
-  action?: string
   description?: string
 }
 
@@ -76,8 +56,8 @@ export interface RoleListResponse {
 }
 
 export interface PermissionListResponse {
-  items: Permission[]
+  items: PermissionWithMeta[]
   total: number
   page: number
   page_size: number
-} 
+}

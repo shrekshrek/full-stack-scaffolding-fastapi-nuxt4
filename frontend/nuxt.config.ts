@@ -18,6 +18,12 @@ export default defineNuxtConfig({
     }
   },
 
+  // 别名配置，解决Layer中的import路径问题
+  alias: {
+    "~/config": "./config",
+    "@config": "./config"
+  },
+
   // 运行时配置
   runtimeConfig: {
     // 私有配置（仅服务端可用）

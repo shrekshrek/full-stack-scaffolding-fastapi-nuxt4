@@ -1,46 +1,28 @@
 /**
- * 基于RBAC的权限检查组合函数
+ * 权限检查组合函数（简化版）
  * 
- * 支持细粒度权限检查，遵循KISS原则，专注核心功能
+ * 核心功能：权限检查和加载
  */
 
-import { PERMISSIONS, isSystemPermission } from '../../config/permissions'
-import { usePermissionsStore } from '../../stores/permissions'
+import type { Permission, PermissionWithMeta } from '../../types/permissions'
+import { isSamePermission } from '../../types/permissions'
+
+// 全局权限缓存
+const globalUserPermissions = ref<PermissionWithMeta[]>([])
+const permissionsLoaded = ref(false)
+const permissionsLoading = ref(false)
 
 export const usePermissions = () => {
-  // 在服务端渲染期间，返回安全的默认值
+  // 服务端安全默认值
   if (import.meta.server) {
     return {
-      // 基础权限检查
       hasPermission: () => false,
-      hasAllPermissions: () => false,
-      hasAnyPermission: () => false,
-      hasSystemPermission: () => false,
+      loadUserPermissions: () => Promise.resolve([]),
+      permissionsLoaded: readonly(ref(false)),
+      permissionsLoading: readonly(ref(false)),
       
-      // 管理员权限检查
+      // 管理员权限
       hasAdminPermissions: readonly(ref(false)),
-      
-      // 用户权限
-      canViewUsers: readonly(ref(false)),
-      canManageUsers: readonly(ref(false)),
-      canDeleteUsers: readonly(ref(false)),
-      canManageUserRoles: readonly(ref(false)),
-      canEditUser: () => false,
-      canDeleteUser: () => false,
-      
-      // 角色权限
-      canViewRoles: readonly(ref(false)),
-      canManageRoles: readonly(ref(false)),
-      canDeleteRoles: readonly(ref(false)),
-      canEditRole: () => false,
-      canDeleteRole: () => false,
-      
-      // 权限权限
-      canViewPermissions: readonly(ref(false)),
-      canManagePermissions: readonly(ref(false)),
-      canDeletePermissions: readonly(ref(false)),
-      canEditPermission: () => false,
-      canDeletePermission: () => false,
       
       // 页面访问权限
       canAccessDashboard: readonly(ref(false)),
@@ -48,88 +30,113 @@ export const usePermissions = () => {
       canAccessRolesPage: readonly(ref(false)),
       canAccessPermissionsPage: readonly(ref(false)),
       
+      // 用户操作权限
+      canEditUser: () => false,
+      canDeleteUser: () => false,
+      
       // 用户信息
+      currentUserId: readonly(ref(undefined)),
       currentUserRoles: readonly(ref([])),
-      currentUserId: readonly(ref(undefined))
+      
+      // 权限数据
+      permissions: readonly(ref([]))
     }
   }
 
   const { session } = useUserSession()
-  const userStore = useUserStore()
-  const permissionsStore = usePermissionsStore()
   
-  // 获取当前用户所有角色
-  const currentUserRoles = computed(() => {
-    return session.value?.user?.roles || userStore.profile?.roles || []
-  })
-  
-  // 获取当前用户ID
-  const currentUserId = computed(() => {
-    return session.value?.user?.id || userStore.profile?.id
-  })
-  
-  // 核心权限检查函数 - 支持多角色权限聚合
-  const hasPermission = (permission: string): boolean => {
-    if (!permissionsStore.initialized) {
+  /**
+   * 核心功能：检查权限
+   */
+  const hasPermission = (permission: Permission): boolean => {
+    // 超级管理员特殊处理
+    const userRoles = session.value?.user?.roles || []
+    if (userRoles.includes('super_admin')) {
+      return true  // 超级管理员拥有所有权限
+    }
+    
+    // 管理员特殊处理（除了删除核心资源）
+    if (userRoles.includes('admin')) {
+      if (permission.action !== 'delete' || 
+          !['user', 'role', 'permission'].includes(permission.target)) {
+        return true
+      }
+    }
+    
+    // 普通权限检查
+    if (!permissionsLoaded.value || !globalUserPermissions.value) {
       return false
     }
     
-    // 检查用户的任一角色是否拥有该权限
-    return currentUserRoles.value.some((role: string) => 
-      permissionsStore.hasRolePermission(role, permission)
-    )
+    return globalUserPermissions.value.some(p => isSamePermission(p, permission))
   }
   
-  // 检查多个权限（需要全部满足）
-  const hasAllPermissions = (permissions: string[]): boolean => {
-    return permissions.every(permission => hasPermission(permission))
+  /**
+   * 加载用户权限（缓存优化）
+   */
+  const loadUserPermissions = async (): Promise<PermissionWithMeta[]> => {
+    // 避免重复加载
+    if (permissionsLoading.value) return globalUserPermissions.value
+    if (permissionsLoaded.value) return globalUserPermissions.value
+    
+    permissionsLoading.value = true
+    
+    try {
+      const { apiRequest } = useApi()
+      const permissions = await apiRequest<PermissionWithMeta[]>('/rbac/me/permissions')
+      globalUserPermissions.value = permissions
+      permissionsLoaded.value = true
+      
+      // 客户端本地存储缓存
+      if (import.meta.client) {
+        localStorage.setItem('user_permissions_cache', JSON.stringify({
+          permissions,
+          timestamp: Date.now(),
+          userId: session.value?.user?.id
+        }))
+      }
+      
+      return permissions
+    } catch (error) {
+      console.error('Failed to load user permissions:', error)
+      return []
+    } finally {
+      permissionsLoading.value = false
+    }
   }
-  
-  // 检查多个权限（满足任意一个即可）
-  const hasAnyPermission = (permissions: string[]): boolean => {
-    return permissions.some(permission => hasPermission(permission))
-  }
-  
-  // 检查是否具有系统级权限
-  const hasSystemPermission = (permission: string): boolean => {
-    return isSystemPermission(permission) && hasPermission(permission)
-  }
-  
-  // 检查是否具有管理员级别的权限
-  const hasAdminPermissions = computed(() => {
-    return hasAnyPermission([
-      PERMISSIONS.USER_WRITE,
-      PERMISSIONS.USER_DELETE,
-      PERMISSIONS.ROLE_WRITE,
-      PERMISSIONS.PERMISSION_WRITE
-    ])
+
+  /**
+   * 获取当前用户ID
+   */
+  const currentUserId = computed(() => {
+    return session.value?.user?.id
   })
   
-  // 常用权限检查（计算属性）
-  const canViewUsers = computed(() => hasPermission(PERMISSIONS.USER_READ))
-  const canManageUsers = computed(() => hasPermission(PERMISSIONS.USER_WRITE))
-  const canDeleteUsers = computed(() => hasPermission(PERMISSIONS.USER_DELETE))
-  const canManageUserRoles = computed(() => hasPermission(PERMISSIONS.ROLE_WRITE))
+  /**
+   * 获取当前用户角色
+   */
+  const currentUserRoles = computed(() => {
+    return session.value?.user?.roles || []
+  })
+
+  // 常用页面访问权限检查（基于hasPermission的便捷封装）
+  const canAccessDashboard = computed(() => hasPermission({ target: 'dashboard', action: 'access' }))
+  const canAccessUsersPage = computed(() => hasPermission({ target: 'user_mgmt', action: 'access' }))
+  const canAccessRolesPage = computed(() => hasPermission({ target: 'role_mgmt', action: 'access' }))
+  const canAccessPermissionsPage = computed(() => hasPermission({ target: 'perm_mgmt', action: 'access' }))
   
-  const canViewRoles = computed(() => hasPermission(PERMISSIONS.ROLE_READ))
-  const canManageRoles = computed(() => hasPermission(PERMISSIONS.ROLE_WRITE))
-  const canDeleteRoles = computed(() => hasPermission(PERMISSIONS.ROLE_DELETE))
-  
-  const canViewPermissions = computed(() => hasPermission(PERMISSIONS.PERMISSION_READ))
-  const canManagePermissions = computed(() => hasPermission(PERMISSIONS.PERMISSION_WRITE))
-  const canDeletePermissions = computed(() => hasPermission(PERMISSIONS.PERMISSION_DELETE))
-  
-  const canAccessDashboard = computed(() => hasPermission(PERMISSIONS.PAGE_DASHBOARD))
-  const canAccessUsersPage = computed(() => hasPermission(PERMISSIONS.PAGE_USERS))
-  const canAccessRolesPage = computed(() => hasPermission(PERMISSIONS.PAGE_ROLES))
-  const canAccessPermissionsPage = computed(() => hasPermission(PERMISSIONS.PAGE_PERMISSIONS))
+  // 管理员权限检查
+  const hasAdminPermissions = computed(() => {
+    return currentUserRoles.value.includes('admin') ||
+           currentUserRoles.value.includes('super_admin')
+  })
   
   // 用户操作权限检查
   const canEditUser = (targetUser: { id: number } | null | undefined): boolean => {
     if (!targetUser) return false
     
-    // 有用户管理权限可以编辑所有用户
-    if (hasPermission(PERMISSIONS.USER_WRITE)) {
+    // 有用户编辑权限可以编辑所有用户
+    if (hasPermission({ target: 'user', action: 'write' })) {
       return true
     }
     
@@ -141,102 +148,59 @@ export const usePermissions = () => {
     if (!targetUser) return false
     
     // 只有有删除权限的用户可以删除
-    if (!hasPermission(PERMISSIONS.USER_DELETE)) {
+    if (!hasPermission({ target: 'user', action: 'delete' })) {
       return false
     }
     
     // 不能删除自己
     return targetUser.id !== currentUserId.value
   }
-  
-  // 角色操作权限检查
-  const canEditRole = (roleName: string): boolean => {
-    if (!hasPermission(PERMISSIONS.ROLE_WRITE)) {
-      return false
-    }
-    
-    // 检查是否为系统角色
-    if (permissionsStore.isSystemRole(roleName)) {
-      // 系统角色只能修改显示名称和描述
-      return true
-    }
-    
-    return true
-  }
-  
-  const canDeleteRole = (roleName: string): boolean => {
-    if (!hasPermission(PERMISSIONS.ROLE_DELETE)) {
-      return false
-    }
-    
-    // 系统角色不能删除
-    return !permissionsStore.isSystemRole(roleName)
-  }
-  
-  // 权限操作权限检查
-  const canEditPermission = (permissionName: string): boolean => {
-    if (!hasPermission(PERMISSIONS.PERMISSION_WRITE)) {
-      return false
-    }
-    
-    // 检查是否为系统权限
-    if (permissionsStore.isSystemPermission(permissionName)) {
-      // 系统权限只能修改显示名称和描述
-      return true
-    }
-    
-    return true
-  }
-  
-  const canDeletePermission = (permissionName: string): boolean => {
-    if (!hasPermission(PERMISSIONS.PERMISSION_DELETE)) {
-      return false
-    }
-    
-    // 系统权限不能删除
-    return !permissionsStore.isSystemPermission(permissionName)
-  }
-  
+
   return {
-    // 基础权限检查
+    // 核心权限检查
     hasPermission,
-    hasAllPermissions,
-    hasAnyPermission,
-    hasSystemPermission,
     
-    // 管理员权限检查
+    // 权限加载
+    loadUserPermissions,
+    permissionsLoaded: readonly(permissionsLoaded),
+    permissionsLoading: readonly(permissionsLoading),
+    
+    // 管理员权限
     hasAdminPermissions: readonly(hasAdminPermissions),
     
-    // 用户权限
-    canViewUsers: readonly(canViewUsers),
-    canManageUsers: readonly(canManageUsers),
-    canDeleteUsers: readonly(canDeleteUsers),
-    canManageUserRoles: readonly(canManageUserRoles),
-    canEditUser,
-    canDeleteUser,
-    
-    // 角色权限
-    canViewRoles: readonly(canViewRoles),
-    canManageRoles: readonly(canManageRoles),
-    canDeleteRoles: readonly(canDeleteRoles),
-    canEditRole,
-    canDeleteRole,
-    
-    // 权限权限
-    canViewPermissions: readonly(canViewPermissions),
-    canManagePermissions: readonly(canManagePermissions),
-    canDeletePermissions: readonly(canDeletePermissions),
-    canEditPermission,
-    canDeletePermission,
-    
-    // 页面访问权限
+    // 页面访问权限（UI使用）
     canAccessDashboard: readonly(canAccessDashboard),
     canAccessUsersPage: readonly(canAccessUsersPage),
     canAccessRolesPage: readonly(canAccessRolesPage),
     canAccessPermissionsPage: readonly(canAccessPermissionsPage),
     
+    // 用户操作权限（UI使用）
+    canEditUser,
+    canDeleteUser,
+    
     // 用户信息
+    currentUserId: readonly(currentUserId),
     currentUserRoles: readonly(currentUserRoles),
-    currentUserId: readonly(currentUserId)
+    
+    // 权限数据
+    permissions: readonly(globalUserPermissions)
   }
-} 
+}
+
+// ============================================================================
+// 导出的工具函数（用于特殊场景）
+// ============================================================================
+
+/**
+ * 判断是否为核心权限
+ */
+export const isCorePermission = (permission: Permission): boolean => {
+  return ['user', 'role', 'permission', 'user_mgmt', 'role_mgmt', 'perm_mgmt'].includes(permission.target)
+}
+
+/**
+ * 判断角色是否为核心角色
+ */
+export const isCoreRole = (roleName: string): boolean => {
+  return ['super_admin', 'admin', 'user'].includes(roleName)
+}

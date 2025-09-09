@@ -43,7 +43,6 @@ pnpm dev
    # - SECRET_KEY: 使用 openssl rand -hex 32 生成
    # - NUXT_SESSION_PASSWORD: 使用 openssl rand -base64 32 生成
    # - DATABASE_URL: 确保密码与POSTGRES_PASSWORD一致
-   # - SMTP配置: 配置生产邮件服务器
    # - BACKEND_CORS_ORIGINS: 设置为实际域名
    ```
 

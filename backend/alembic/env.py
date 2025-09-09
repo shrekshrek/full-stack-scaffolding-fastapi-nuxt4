@@ -16,7 +16,7 @@ config = context.config
 # --- .env loading ---
 # Construct the path to the .env file in the project root
 # alembic/env.py -> alembic/ -> backend/ -> .env
-env_path = Path(__file__).parent.parent.parent / '.env'
+env_path = Path(__file__).parent.parent.parent / ".env"
 if env_path.is_file():
     print(f"Loading environment variables from: {env_path}")
     load_dotenv(dotenv_path=env_path)
@@ -35,14 +35,14 @@ else:
 # Add src to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+# add your model's MetaData object here
+# for 'autogenerate' support
+from src.database import Base  # noqa: E402
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# add your model's MetaData object here
-# for 'autogenerate' support
-from src.database import Base
 
 target_metadata = Base.metadata
 
@@ -90,9 +90,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

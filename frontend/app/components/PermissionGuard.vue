@@ -15,15 +15,17 @@
 /**
  * 权限守卫组件
  * 
- * 用于在模板中进行权限检查，支持系统级权限保护
+ * 用于在模板中进行权限检查，使用结构化权限格式
  * 遵循KISS原则，专注核心功能
  */
 
+import type { Permission } from '../../types/permissions'
+
 interface Props {
   // 需要的权限（满足任意一个即可）
-  permissions?: string[]
+  permissions?: Permission[]
   // 需要的权限组（必须全部满足）
-  requireAll?: string[]
+  requireAll?: Permission[]
   // 是否显示降级内容
   showFallback?: boolean
   // 降级消息

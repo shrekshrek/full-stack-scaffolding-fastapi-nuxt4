@@ -28,10 +28,10 @@
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold">角色信息</h2>
           <UBadge
-            :color="roleData.is_system ? 'warning' : 'neutral'"
+            :color="isCoreRole(roleData?.name) ? 'warning' : 'neutral'"
             variant="soft"
           >
-            {{ roleData.is_system ? '系统角色' : '自定义角色' }}
+            {{ isCoreRole(roleData?.name) ? '核心角色' : '自定义角色' }}
           </UBadge>
         </div>
       </template>
@@ -84,12 +84,12 @@
       <div class="space-y-6">
         <!-- 系统角色提示 -->
         <UAlert
-          v-if="roleData?.is_system"
+          v-if="isCoreRole(roleData?.name)"
           color="warning"
           variant="soft"
           icon="i-heroicons-exclamation-triangle"
-          title="系统角色"
-          description="系统角色的权限由系统管理，修改后可能影响系统功能，请谨慎操作。"
+          title="核心角色"
+          description="核心角色的权限由系统管理，修改后可能影响系统功能，请谨慎操作。"
         />
 
         <!-- 使用 ClientOnly 确保权限列表只在客户端渲染 -->
@@ -141,24 +141,24 @@
                   class="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
                 >
                   <UCheckbox
-                    :model-value="selectedPermissionIds.includes(permission.id)"
+                    :model-value="selectedPermissionIds.includes(permission.id!)"
                     :disabled="loading"
-                    @update:model-value="togglePermission(permission.id)"
+                    @update:model-value="togglePermission(permission.id!)"
                   />
                   <div class="flex-1">
                     <p class="text-sm font-medium text-gray-900 dark:text-white">
                       {{ permission.display_name }}
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ permission.name }}
+                      {{ `${permission.target}:${permission.action}` }}
                     </p>
                   </div>
                   <UBadge
-                    :color="permission.is_system ? 'warning' : 'primary'"
+                    :color="['user', 'role', 'permission'].includes(permission.target) ? 'warning' : 'primary'"
                     variant="soft"
                     size="xs"
                   >
-                    {{ permission.is_system ? '系统' : '自定义' }}
+                    {{ ['user', 'role', 'permission'].includes(permission.target) ? 'RBAC核心' : '业务权限' }}
                   </UBadge>
                 </div>
               </div>
@@ -231,7 +231,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Permission } from "../../../../types";
+import type { PermissionWithMeta as Permission } from "../../../../types";
+import { isCoreRole } from "../../../../utils/permissions";
+// 注意：权限分组现在通过API动态获取，无需导入静态配置
 
 // 页面元数据
 definePageMeta({
@@ -262,37 +264,65 @@ const availablePermissions = computed(() => {
   return permissionsData.value?.items || [];
 });
 
+
 // 过滤权限
 const filteredPermissions = computed(() => {
   if (!searchQuery.value) return availablePermissions.value;
   
   const query = searchQuery.value.toLowerCase();
   return availablePermissions.value.filter(permission =>
-    permission.name.toLowerCase().includes(query) ||
     permission.display_name.toLowerCase().includes(query) ||
-    permission.resource.toLowerCase().includes(query) ||
-    permission.action.toLowerCase().includes(query)
+    permission.target.toLowerCase().includes(query) ||
+    permission.action.toLowerCase().includes(query) ||
+    `${permission.target}:${permission.action}`.toLowerCase().includes(query)
   );
 });
 
-// 权限分类
+// 权限分类 - 基于业务逻辑重新设计
 const permissionCategories = computed(() => {
-  const categories: Record<string, { label: string; permissions: Permission[] }> = {
-    user: { label: '用户管理', permissions: [] },
-    role: { label: '角色管理', permissions: [] },
-    permission: { label: '权限管理', permissions: [] },
-    page: { label: '页面访问', permissions: [] }
-  };
-
+  const categories: Record<string, { label: string; permissions: Permission[]; priority: number }> = {};
+  
+  // 动态分类权限
   filteredPermissions.value.forEach(permission => {
-    const category = categories[permission.resource];
-    if (category) {
-      category.permissions.push(permission);
+    let categoryKey: string;
+    let categoryLabel: string;
+    let priority: number;
+    
+    // 页面访问权限
+    if (permission.action === 'access') {
+      categoryKey = 'page_access';
+      categoryLabel = '页面访问权限';
+      priority = 1;
     }
+    // RBAC核心权限 
+    else if (['user', 'role', 'permission'].includes(permission.target)) {
+      categoryKey = 'rbac_core';
+      categoryLabel = 'RBAC核心权限';
+      priority = 2;
+    }
+    // 业务功能权限
+    else {
+      categoryKey = `business_${permission.target}`;
+      categoryLabel = `${permission.target}模块权限`;
+      priority = 3;
+    }
+    
+    // 创建分类
+    if (!categories[categoryKey]) {
+      categories[categoryKey] = {
+        label: categoryLabel,
+        permissions: [],
+        priority
+      };
+    }
+    
+    categories[categoryKey]?.permissions.push(permission);
   });
 
+  // 按优先级排序并返回
   return Object.entries(categories)
     .filter(([_, category]) => category.permissions.length > 0)
+    .sort(([_, a], [__, b]) => a.priority - b.priority)
     .map(([name, category]) => ({
       name,
       label: category.label,
@@ -302,13 +332,13 @@ const permissionCategories = computed(() => {
 
 const selectedPermissions = computed(() => {
   return availablePermissions.value.filter(permission => 
-    selectedPermissionIds.value.includes(permission.id)
+    selectedPermissionIds.value.includes(permission.id!)
   );
 });
 
 // 检查是否有变更
 const hasChanges = computed(() => {
-  const originalIds = roleData.value?.permissions?.map((p: Permission) => p.id).sort() || [];
+  const originalIds = roleData.value?.permissions?.map((p: Permission) => p.id!).sort() || [];
   const currentIds = [...selectedPermissionIds.value].sort();
   
   if (originalIds.length !== currentIds.length) return true;
@@ -319,7 +349,7 @@ const hasChanges = computed(() => {
 // 监听角色数据变化，确保权限选中状态正确初始化
 watch(roleData, (newRole) => {
   if (newRole && newRole.permissions) {
-    selectedPermissionIds.value = newRole.permissions.map((p: Permission) => p.id);
+    selectedPermissionIds.value = newRole.permissions.map((p: Permission) => p.id!);
   }
 }, { immediate: true });
 
@@ -337,8 +367,8 @@ const selectAllInCategory = (categoryName: string) => {
   const category = permissionCategories.value.find(c => c.name === categoryName);
   if (category) {
     category.permissions.forEach(permission => {
-      if (!selectedPermissionIds.value.includes(permission.id)) {
-        selectedPermissionIds.value.push(permission.id);
+      if (!selectedPermissionIds.value.includes(permission.id!)) {
+        selectedPermissionIds.value.push(permission.id!);
       }
     });
   }
@@ -348,7 +378,7 @@ const deselectAllInCategory = (categoryName: string) => {
   const category = permissionCategories.value.find(c => c.name === categoryName);
   if (category) {
     category.permissions.forEach(permission => {
-      const index = selectedPermissionIds.value.indexOf(permission.id);
+      const index = selectedPermissionIds.value.indexOf(permission.id!);
       if (index > -1) {
         selectedPermissionIds.value.splice(index, 1);
       }
@@ -357,7 +387,7 @@ const deselectAllInCategory = (categoryName: string) => {
 };
 
 const resetSelection = () => {
-  selectedPermissionIds.value = roleData.value?.permissions?.map((p: Permission) => p.id) || [];
+  selectedPermissionIds.value = roleData.value?.permissions?.map((p: Permission) => p.id!) || [];
 };
 
 // 事件处理

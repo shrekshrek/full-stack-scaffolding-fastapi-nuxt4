@@ -37,10 +37,6 @@
     <PermissionDetail
       v-else-if="data"
       :permission="data"
-      :can-edit="canEdit"
-      :can-delete="canDelete"
-      @edit="handleEdit"
-      @delete="handleDelete"
     />
   </div>
 </template>
@@ -60,53 +56,7 @@ const permissionId = computed(() => Number(route.params.id));
 const rbacApi = useRbacApi();
 const { data, pending, error, refresh } = await rbacApi.getPermission(permissionId.value);
 
-// 权限检查
-const permissions = usePermissions();
-
-const canEdit = computed(() => {
-  if (!data.value) return false;
-  return permissions.hasPermission('permission:write') && !data.value.is_system;
-});
-
-const canDelete = computed(() => {
-  if (!data.value) return false;
-  return permissions.hasPermission('permission:delete') && !data.value.is_system;
-});
-
-// 事件处理
-const handleEdit = () => {
-  navigateTo(`/rbac/permissions/${permissionId.value}/edit`);
-};
-
-const handleDelete = async () => {
-  if (!data.value) return;
-  
-  const { $confirm } = useNuxtApp();
-  const confirmed = await $confirm(`确定要删除权限 "${data.value.display_name}" 吗？此操作不可撤销。`);
-  if (!confirmed) return;
-  
-  try {
-    await rbacApi.deletePermission(data.value.id);
-    
-    // 显示成功消息
-    const toast = useToast();
-    toast.add({
-      title: '删除成功',
-      description: `权限 "${data.value.display_name}" 已被删除`,
-      color: 'success'
-    });
-    
-    navigateTo('/rbac/permissions');
-  } catch {
-    // 显示错误消息
-    const toast = useToast();
-    toast.add({
-      title: '删除失败',
-      description: '无法删除权限，请稍后重试',
-      color: 'error'
-    });
-  }
-};
+// 权限详情为只读模式，所有权限通过代码管理
 
 // 监听路由变化
 watch(() => route.params.id, async (newId) => {

@@ -1,6 +1,5 @@
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from .config import settings
@@ -17,16 +16,6 @@ POSTGRES_NAMING_CONVENTION = {
 
 metadata = MetaData(naming_convention=POSTGRES_NAMING_CONVENTION)
 
-# Create the SQLAlchemy engine (sync)
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_size=settings.DB_POOL_SIZE,
-    max_overflow=settings.DB_MAX_OVERFLOW,
-    pool_timeout=settings.DB_POOL_TIMEOUT,
-    pool_recycle=settings.DB_POOL_RECYCLE,
-    pool_pre_ping=True,  # Check connection health before use
-    # connect_args={"check_same_thread": False} # Needed for SQLite
-)
 
 # Create async engine
 async_engine = create_async_engine(
@@ -38,8 +27,7 @@ async_engine = create_async_engine(
     pool_pre_ping=True,  # Check connection health before use
 )
 
-# Create sessionmakers
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Create async sessionmaker
 AsyncSessionLocal = async_sessionmaker(
     async_engine, class_=AsyncSession, expire_on_commit=False
 )
@@ -48,22 +36,10 @@ AsyncSessionLocal = async_sessionmaker(
 Base = declarative_base(metadata=metadata)
 
 
-# Dependency to get a DB session (sync)
-def get_db():
-    """
-    FastAPI dependency that provides a SQLAlchemy database session.
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 # Dependency to get a DB session (async)
 async def get_async_db():
     """
     FastAPI dependency that provides an async SQLAlchemy database session.
     """
     async with AsyncSessionLocal() as session:
-        yield session 
+        yield session

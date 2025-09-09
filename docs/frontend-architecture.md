@@ -131,27 +131,15 @@ frontend/
 
 ## 6. 开发指南
 
-### 6.1. 添加新页面/功能
+详细的开发规范和操作指南见：
+- [前端开发规范](../frontend/CONTRIBUTING.md)
+- [模块化开发指南](./MODULAR_DEVELOPMENT.md)
 
-1.  **定义权限 (可选)**: 如果新页面需要权限，先在 `backend/src/rbac/init_data.py` 和 `frontend/src/config/permissions.ts` 中定义权限元数据。
-2.  **创建页面**: 在 `pages/` 或相关 Layer 的 `pages/` 目录下创建 `.vue` 文件。
-3.  **配置路由权限**: 在 `config/routes.ts` 中为新页面添加一条路由规则，定义其访问所需的认证和权限。
-4.  **数据获取**: 使用 `useApiData` 获取页面所需的数据。
+### 关键要点
 
-### 6.2. 数据获取最佳实践
-
--   **SSR 场景**: 始终优先使用 `useApiData()` 或业务 API（如 `usersApi.getUsers()`）来获取数据，以获得最佳的性能和 SEO 效果。
--   **客户端交互**: 对于用户点击按钮等客户端事件触发的 API 调用，使用 `apiRequest()`。
-
-### 6.3. SSR 注意事项
-
--   **避免 Hydration Mismatch**: 任何仅在客户端才能确定的状态或渲染的组件（如使用 `window` 对象、ECharts图表等），都**必须**用 `<ClientOnly>` 组件包裹，并提供一个有意义的 `fallback` 内容作为服务端渲染的占位符。
--   **示例**:
-    ```vue
-    <ClientOnly fallback-tag="div" fallback="Loading chart...">
-      <MyChartComponent />
-    </ClientOnly>
-    ```
+- **SSR 优先**: 使用 `useApiData()` 获取数据，支持服务端渲染
+- **避免 Hydration Mismatch**: 客户端特定组件必须用 `<ClientOnly>` 包裹
+- **类型安全**: 全面使用 TypeScript，确保端到端类型安全
 
 ---
 

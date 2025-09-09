@@ -134,6 +134,7 @@ export const useApi = () => {
     const response = await $fetch<T>(fullPath, {
       ...options,
       headers,
+      baseURL: '', // 使用空字符串确保相对路径，避免CORS问题
       onResponseError({ response }) {
         const { message } = handleApiError(response)
         showError(message)
@@ -161,6 +162,7 @@ export const useApi = () => {
     return useFetch<T>(fullPath, {
       ...options,
       headers,
+      baseURL: '', // 使用空字符串确保相对路径，避免CORS问题
       onResponseError({ response }) {
         const { message } = handleApiError(response)
         showError(message)

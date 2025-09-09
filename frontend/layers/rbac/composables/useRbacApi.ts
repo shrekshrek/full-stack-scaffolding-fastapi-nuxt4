@@ -1,4 +1,4 @@
-import type { Role, Permission, RoleCreate, RoleUpdate, PermissionCreate, PermissionUpdate, RoleListResponse, PermissionListResponse } from '../types'
+import type { Role, PermissionWithMeta as Permission, RoleCreate, RoleUpdate, RoleListResponse, PermissionListResponse } from '../types'
 
 export const useRbacApi = () => {
   const { apiRequest, useApiData, showSuccess, showError } = useApi()
@@ -92,46 +92,8 @@ export const useRbacApi = () => {
     })
   }
 
-  const createPermission = async (data: PermissionCreate) => {
-    try {
-      const result = await apiRequest<Permission>('/rbac/permissions', {
-        method: 'POST',
-        body: data,
-      })
-      showSuccess('权限创建成功！')
-      return result
-    } catch (error) {
-      showError('权限创建失败')
-      throw error
-    }
-  }
-
-  const updatePermission = async (id: number, data: PermissionUpdate) => {
-    try {
-      const result = await apiRequest<Permission>(`/rbac/permissions/${id}`, {
-        method: 'PUT',
-        body: data,
-      })
-      showSuccess('权限更新成功！')
-      return result
-    } catch (error) {
-      showError('权限更新失败')
-      throw error
-    }
-  }
-
-  const deletePermission = async (id: number) => {
-    try {
-      await apiRequest(`/rbac/permissions/${id}`, {
-        method: 'DELETE',
-      })
-      showSuccess('权限删除成功！')
-      return true
-    } catch (error) {
-      showError('权限删除失败')
-      throw error
-    }
-  }
+  // 权限创建/编辑/删除功能已移除
+  // 所有权限通过代码定义 (backend/src/rbac/init_data.py)
 
   // 角色权限关联
   const getRolePermissions = (roleId: number) => {
@@ -184,6 +146,13 @@ export const useRbacApi = () => {
     })
   }
 
+  // 权限分组查询
+  const getPermissionGroups = () => {
+    return useApiData<Record<string, { label: string, permissions: string[] }>>('/rbac/permission-groups', {
+      key: 'rbac-permission-groups',
+    })
+  }
+
   return {
     // 角色管理
     getRoles,
@@ -193,12 +162,9 @@ export const useRbacApi = () => {
     updateRolePermissions,
     deleteRole,
     
-    // 权限管理
+    // 权限管理 (仅查看功能)
     getPermissions,
     getPermission,
-    createPermission,
-    updatePermission,
-    deletePermission,
     
     // 角色权限关联
     getRolePermissions,
@@ -210,5 +176,8 @@ export const useRbacApi = () => {
     
     // 用户权限查询
     getUserPermissions,
+    
+    // 权限分组查询
+    getPermissionGroups,
   }
 } 

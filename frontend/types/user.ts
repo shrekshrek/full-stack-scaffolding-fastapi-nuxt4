@@ -1,3 +1,5 @@
+import type { PermissionWithMeta } from './permissions'
+
 // 角色类型定义
 export interface Role {
   id: number;
@@ -5,6 +7,7 @@ export interface Role {
   display_name: string;
   description?: string;
   is_system: boolean;
+  permissions?: PermissionWithMeta[]; // 可选的权限列表，用于角色详情展示
 }
 
 // 完整的用户模型（与后端 UserRead schema 同步）
@@ -20,14 +23,14 @@ export interface User {
 // 与后端 UserCreate schema 同步的用户创建类型
 export interface UserCreate {
   username: string;
-  email: string;
+  email?: string | null; // 邮箱是可选的，与后端保持一致
   password: string;
 }
 
 // 用户更新类型
 export interface UserUpdate {
   username?: string;
-  email?: string;
+  email?: string | null; // 与UserCreate保持一致
   password?: string; // 密码在更新时是可选的
 }
 

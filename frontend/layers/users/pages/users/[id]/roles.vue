@@ -149,11 +149,11 @@
                       {{ role.display_name }}
                     </p>
                     <UBadge
-                      :color="role.is_system ? 'warning' : 'neutral'"
+                      :color="isCoreRole(role.name) ? 'warning' : 'neutral'"
                       variant="soft"
                       size="sm"
                     >
-                      {{ role.is_system ? '系统' : '自定义' }}
+                      {{ isCoreRole(role.name) ? '核心' : '自定义' }}
                     </UBadge>
                   </div>
                   <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -217,6 +217,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import type { User } from '../../../types'
 import { getRoleColor, getRoleLabel } from '../../../utils/ui-helpers'
+import { isCoreRole } from '../../../../rbac/utils/permissions'  // 明确的跨模块依赖
 
 // 页面元数据
 definePageMeta({
@@ -261,8 +262,8 @@ const filteredRoles = computed(() => {
 })
 
 const roleGroups = computed(() => {
-  const systemRoles = filteredRoles.value.filter(role => role.is_system)
-  const customRoles = filteredRoles.value.filter(role => !role.is_system)
+  const systemRoles = filteredRoles.value.filter(role => isCoreRole(role.name))
+  const customRoles = filteredRoles.value.filter(role => !isCoreRole(role.name))
   
   const groups = []
   

@@ -18,14 +18,13 @@
           />
         </UFormField>
 
-        <UFormField label="邮箱地址" name="email">
+        <UFormField label="邮箱地址（可选）" name="email">
           <UInput
             v-model="state.email"
             type="email"
-            placeholder="请输入邮箱地址"
+            placeholder="请输入邮箱地址（可选）"
             autocomplete="email"
             size="lg"
-            required
           />
         </UFormField>
 
@@ -94,14 +93,14 @@ const errorMsg = ref<string | null>(null);
 
 const state = reactive({
   username: '',
-  email: '',
+  email: '' as string | undefined,
   password: '',
   passwordConfirm: '',
 })
 
 const schema = z.object({
   username: z.string().min(3, '用户名至少需要3个字符'),
-  email: z.string().email('无效的邮箱地址'),
+  email: z.string().email('无效的邮箱地址').optional().or(z.literal('')),
   password: z.string().min(8, '密码至少需要8个字符'),
   passwordConfirm: z.string().min(8, '密码至少需要8个字符'),
 }).refine(data => data.password === data.passwordConfirm, {
@@ -109,13 +108,13 @@ const schema = z.object({
   path: ["passwordConfirm"],
 });
 
-const handleSubmit = async (event: FormSubmitEvent<typeof state>) => {
+const handleSubmit = async (event: FormSubmitEvent<z.output<typeof schema>>) => {
   errorMsg.value = null;
   loading.value = true;
   try {
     await register({
       username: event.data.username,
-      email: event.data.email,
+      email: event.data.email || null, // 空字符串转为null
       password: event.data.password,
     });
 
@@ -123,8 +122,11 @@ const handleSubmit = async (event: FormSubmitEvent<typeof state>) => {
     await navigateTo('/dashboard');
 
   } catch (e) {
-    const error = e as { data?: { statusMessage?: string; detail?: string } };
-    errorMsg.value = error.data?.statusMessage || error.data?.detail || '注册失败，请稍后重试';
+    const error = e as { data?: { statusMessage?: string; detail?: string; error?: { message: string } } };
+    errorMsg.value = error.data?.error?.message 
+      || error.data?.statusMessage 
+      || error.data?.detail 
+      || '注册失败，请稍后重试';
   } finally {
     loading.value = false;
   }

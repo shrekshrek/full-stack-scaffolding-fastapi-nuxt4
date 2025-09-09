@@ -10,7 +10,9 @@ from src.config import settings
 from src.database import get_async_db
 from src.redis_client import get_redis_client
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/auth/token", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_PREFIX}/auth/token", auto_error=False
+)
 
 
 async def get_current_user(
@@ -28,7 +30,7 @@ async def get_current_user(
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        
+
     if await is_token_blacklisted(redis_client, token):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

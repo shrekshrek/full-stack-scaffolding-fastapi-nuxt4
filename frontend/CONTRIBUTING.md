@@ -62,9 +62,8 @@ frontend/
 │   ├── useLoading.ts       # 加载状态管理 (推荐)
 │   └── useFormValidation.ts # 表单验证 (推荐)
 ├── config/                  # 配置文件 (推荐)
-│   ├── routes.ts           # 路由权限配置 (必需)
-│   ├── permissions.ts      # 权限定义 (必需)
-│   └── api-auth.ts         # API认证配置 (必需)
+│   ├── routes.ts           # 统一路由权限配置（页面约定+功能配置）(必需)
+│   └── permissions.ts      # 权限常量定义 (必需)
 ├── middleware/              # 全局中间件 (推荐)
 │   └── route-guard.global.ts # 统一路由守卫 (必需)
 ├── plugins/                 # 插件 (按需)
@@ -123,6 +122,11 @@ export default defineNuxtConfig({
     - **业务组合式函数**: 与特定业务逻辑相关的函数，放在对应 Layer 的 `composables/`
 - **Layer 专属后端接口**: 每个 Layer 都可以拥有自己的 `server/` 目录，用于创建与该领域紧密相关的 BFF (Backend for Frontend) API 接口
 - **资源路径处理**: 在 Layer 中引用静态资源时，使用 `#assets` 别名或 `import.meta.url` 来构造绝对路径，确保路径在合并后依然正确
+
+#### Layer 注册（重要）
+
+新创建的 Layer 必须在 `nuxt.config.ts` 中注册才能生效：
+
 
 #### 组件自动导入
 
@@ -189,20 +193,22 @@ components: [
 #### 核心架构
 
 **关键组件**：
-- **认证初始化**: `plugins/auth-init.client.ts` 统一处理应用启动时的认证状态
-- **统一守卫**: `middleware/route-guard.global.ts` 统一处理认证检查和权限验证
-- **权限配置**: `config/permissions.ts` 和 `config/routes.ts` 集中管理权限和路由安全要求
-- **API认证配置**: `config/api-auth.ts` 集中管理API路径的认证需求
+- **认证初始化**: `plugins/auth-init.client.ts` 统一处理应用启动时的认证状态和权限预加载
+- **3层路由守卫**: `middleware/route-guard.global.ts` 实现3层权限检查
+- **统一权限配置**: `config/routes.ts` 中ROUTE_PERMISSIONS统一管理所有路由权限
+- **权限常量定义**: `config/permissions.ts` 与后端完全一致的权限常量定义
+- **权限检查逻辑**: `composables/usePermissions.ts` 核心权限检查和常用封装
 - **API处理**: `composables/useApi.ts` 统一处理API请求和401错误
 - **错误处理**: `plugins/error-handler.client.ts` 全局错误捕获和处理
 
-**设计特点**：配置驱动、自动化处理、权限优先、开发高效
+**设计特点**：统一配置、简单清晰、性能优化、极简开发
 
 #### 使用规范
 
 - **认证状态**: `useUserSession()` 获取登录状态和用户数据
-- **权限检查**: `usePermissions()` 进行权限检测和UI控制
-- **路由保护**: 在 `config/routes.ts` 中定义，页面无需额外配置
+- **权限检查**: `usePermissions()` 提供核心权限检查和常用封装
+- **统一路由保护**: 所有权限检查在ROUTE_PERMISSIONS中统一配置
+- **超管快速通道**: 管理员无需等待权限加载，直接访问
 - **错误处理**: 401错误自动登出，权限不足自动重定向
 
 ---
@@ -342,57 +348,48 @@ const { data } = usersApi.getUsers({
 
 ---
 
-### 10. API认证配置
+### 10. API认证处理（v3.0极简版）
 
-**配置文件**: `config/api-auth.ts`
+**处理方式**: 认证逻辑已内联到 `server/api/v1/[...].ts`
 
-**功能**：集中管理所有API路径的认证需求，服务端代理自动根据配置处理认证。
+**功能**：简化的API认证检查，自动处理公开路径和认证路径。
 
 ```typescript
-export const API_AUTH_CONFIG = {
-  // 公开路径：不需要认证
-  public: [
-    '/auth/login',
-    '/auth/register',
-    '/public',
-    // ...其他公开路径
-  ],
+// server/api/v1/[...].ts - 内联认证逻辑
+export default defineEventHandler(async (event) => {
+  const cleanPath = getApiPath(event)
   
-  // 特殊权限路径（可扩展）
-  special: {
-    readOnly: [
-      '/announcements',
-      '/public-stats'
-    ]
-  }
-}
+  // 简化的公开路径检查
+  const publicPaths = [
+    '/auth/login', 
+    '/auth/register', 
+    '/auth/token', 
+    '/auth/logout'
+  ]
+  const needsAuth = cleanPath && !publicPaths.some(p => 
+    cleanPath === p || cleanPath.startsWith(p + '/')
+  )
+  
+  // 认证检查逻辑...
+})
 ```
 
-**使用方式**：
-- 服务端代理 `server/api/v1/[...].ts` 自动读取配置
-- 新增模块时只需在配置中添加相应路径
-- 不需要修改代理逻辑
+**优势**：
+- 无需单独的配置文件，减少维护成本
+- 认证逻辑更加直接易懂
+- 新增公开路径直接在代理中修改
 
 ---
 
 ### 11. 新模块添加流程
 
-添加新业务模块时，只需调整以下配置：
+完整的模块开发流程见 [`docs/MODULAR_DEVELOPMENT.md`](../docs/MODULAR_DEVELOPMENT.md)
 
-1. **路由权限配置** (`config/routes.ts`)
-   - 添加页面路由的认证和权限要求
-
-2. **API认证配置** (`config/api-auth.ts`)
-   - 添加公开API路径（如果有）
-   - 其他API默认需要认证
-
-3. **权限定义** (`config/permissions.ts`)
-   - 如需细粒度权限控制，添加新权限定义
-
-**优势**：
-- 配置集中管理，易于维护
-- 减少重复代码
-- 统一处理逻辑
+快速步骤：
+1. 后端定义权限：`*create_module_permissions("module", ["access", "read"])`
+2. 创建前端 Layer：在 `layers/` 目录下创建模块结构
+3. 配置路由权限：在 `config/routes.ts` 中添加权限映射
+4. 重启服务：`pnpm dev` 自动同步权限
 
 ---
 

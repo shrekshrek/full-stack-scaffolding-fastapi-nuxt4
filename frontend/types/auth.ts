@@ -39,6 +39,13 @@ export interface RegisterRequest {
   confirmPassword?: string; // 前端表单验证用
 }
 
+// 修改密码请求类型
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  confirm_password?: string; // 前端表单验证用
+}
+
 // 认证状态类型
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
@@ -64,6 +71,12 @@ export interface StandardError {
   data?: {
     detail?: string;
     statusMessage?: string;
+    // 添加对后端标准错误格式的支持
+    error?: {
+      code: string;
+      message: string;
+    };
+    message?: string;
   };
   message?: string;
   status?: number;

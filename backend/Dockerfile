@@ -4,30 +4,27 @@ FROM python:3.11-slim
 # 2. Set Environment Variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV UV_LINK_MODE=copy
 
 # 3. Set Work Directory
 WORKDIR /app
 
 # 4. Install uv
-RUN pip install --no-cache-dir uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 5. Configure uv environment variables
-ENV UV_SYSTEM_PYTHON=1 \
-    UV_COMPILE_BYTECODE=1 \
-    UV_CACHE_DIR=/tmp/uv_cache \
-    UV_LINK_MODE=copy
+# 5. Copy project files and install dependencies
+# Note: uv.lock should be committed to your repository
+COPY pyproject.toml uv.lock* ./
 
-# 6. Copy dependency files and install dependencies
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-cache
+# Install dependencies using uv
+RUN uv sync --frozen --no-dev
 
-# 7. Copy application code
+# 6. Copy application code
 COPY ./src ./src
 
-# 8. Expose port
+# 7. Expose port
 EXPOSE 8000
 
-# 9. Command to run the application
-# Gunicorn with Uvicorn workers for production
-# The number of workers is typically (2 * CPU_CORES) + 1
-CMD ["uv", "run", "--no-sync", "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "src.main:app"] 
+# 8. Command to run the application
+# Use uv to run the application
+CMD ["uv", "run", "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "src.main:app"]

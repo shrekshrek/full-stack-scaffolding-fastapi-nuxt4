@@ -40,9 +40,8 @@ frontend/
 │   └── usePermissions.ts # 权限检查
 ├── pages/          # 全局页面
 ├── config/         # 配置文件
-│   ├── routes.ts   # 路由权限
-│   ├── permissions.ts # 权限定义
-│   └── api-auth.ts # API认证配置
+│   ├── routes.ts   # 统一路由权限配置（页面约定+功能权限）
+│   └── permissions.ts # 权限常量定义
 ├── server/api/v1/[...].ts # 服务端API代理
 ├── plugins/        # 插件配置
 │   ├── auth-init.client.ts # 认证初始化
@@ -66,10 +65,10 @@ frontend/
 - 使用 `usePermissions()` 检查权限
 - 使用 `<PermissionGuard>` 组件控制UI
 
-### API认证配置
-- API路径认证需求在 `config/api-auth.ts` 集中配置
-- 服务端API代理自动根据配置处理认证
-- 支持公开路径和特殊权限路径配置
+### 分层权限控制
+- 页面访问权限通过约定自动处理，在 `config/routes.ts` 的 PAGE_ACCESS_MAP 中配置
+- 功能权限通过配置精确控制，在 `config/routes.ts` 的 FUNCTION_PERMISSIONS 中配置
+- API认证逻辑已内联到 `server/api/v1/[...].ts`，无需单独配置文件
 
 ### 错误处理
 - 全局错误处理器在 `plugins/error-handler.client.ts`

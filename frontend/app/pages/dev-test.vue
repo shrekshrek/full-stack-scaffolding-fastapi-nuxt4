@@ -69,18 +69,18 @@
               <h3 class="font-medium text-gray-900 dark:text-white">权限Store状态</h3>
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
-                  <span>Store初始化:</span>
-                  <UBadge :color="permissionsStore.initialized ? 'success' : 'error'" size="xs">
-                    {{ permissionsStore.initialized ? '是' : '否' }}
+                  <span>权限加载状态:</span>
+                  <UBadge :color="permissions.permissionsLoaded ? 'success' : 'error'" size="xs">
+                    {{ permissions.permissionsLoaded ? '已加载' : '未加载' }}
                   </UBadge>
                 </div>
                 <div class="flex justify-between">
                   <span>权限数量:</span>
-                  <span class="font-mono">{{ permissionsStore.permissions.length }}</span>
+                  <span class="font-mono">{{ (permissions.permissions as any)?.length || 0 }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span>角色数量:</span>
-                  <span class="font-mono">{{ permissionsStore.roles.length }}</span>
+                  <span>用户角色:</span>
+                  <span class="font-mono">{{ (permissions.currentUserRoles as any)?.join(', ') || '无' }}</span>
                 </div>
               </div>
             </div>
@@ -314,28 +314,28 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                <tr v-for="permission in allPermissions" :key="permission.key">
+                <tr v-for="item in allPermissions" :key="`${item.key.target}:${item.key.action}`">
                   <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                    {{ permission.name }}
+                    {{ item.name }}
                   </td>
                   <td class="px-4 py-3 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    {{ permission.key }}
+                    {{ `${item.key.target}:${item.key.action}` }}
                   </td>
                   <td class="px-4 py-3">
                     <UBadge 
-                      :color="permissions.hasPermission(permission.key) ? 'success' : 'neutral'"
+                      :color="permissions.hasPermission(item.key) ? 'success' : 'neutral'"
                       size="sm"
                     >
-                      {{ permissions.hasPermission(permission.key) ? '✓ 有权限' : '✗ 无权限' }}
+                      {{ item.hasPermission ? '✓ 有权限' : '✗ 无权限' }}
                     </UBadge>
                   </td>
                   <td class="px-4 py-3">
                     <UBadge 
-                      :color="isSystemPermission(permission.key) ? 'error' : 'primary'"
+                      :color="item.type === 'core' ? 'error' : 'primary'"
                       size="sm"
                       variant="soft"
                     >
-                      {{ isSystemPermission(permission.key) ? '系统级' : '业务级' }}
+                      {{ item.type === 'core' ? '核心' : '业务' }}
                     </UBadge>
                   </td>
                 </tr>
@@ -395,9 +395,9 @@
 </template>
 
 <script setup lang="ts">
-import { PERMISSIONS, isSystemPermission } from '../../config/permissions'
+import { PERMISSIONS } from '../../config/permissions'
+import { isCorePermission } from '../composables/usePermissions'
 import { getRoleLabel } from '../../layers/users/utils/ui-helpers'
-import { usePermissionsStore } from '../../stores/permissions'
 
 // 开发环境检查 - 生产环境下重定向到首页
 if (process.env.NODE_ENV === 'production') {
@@ -416,7 +416,6 @@ definePageMeta({
 // 认证相关
 const { session, loggedIn } = useUserSession()
 const { login, logout } = useAuthApi()
-const permissionsStore = usePermissionsStore()
 const permissions = usePermissions()
 
 // 响应式数据
@@ -438,21 +437,86 @@ const testMessageClass = computed(() => {
 })
 
 // 所有权限列表（用于展示）
-const allPermissions = [
-  { key: PERMISSIONS.USER_READ, name: '查看用户' },
-  { key: PERMISSIONS.USER_WRITE, name: '编辑用户' },
-  { key: PERMISSIONS.USER_DELETE, name: '删除用户' },
-  { key: PERMISSIONS.ROLE_READ, name: '查看角色' },
-  { key: PERMISSIONS.ROLE_WRITE, name: '编辑角色' },
-  { key: PERMISSIONS.ROLE_DELETE, name: '删除角色' },
-  { key: PERMISSIONS.PERMISSION_READ, name: '查看权限' },
-  { key: PERMISSIONS.PERMISSION_WRITE, name: '编辑权限' },
-  { key: PERMISSIONS.PERMISSION_DELETE, name: '删除权限' },
-  { key: PERMISSIONS.PAGE_DASHBOARD, name: '访问工作台' },
-  { key: PERMISSIONS.PAGE_USERS, name: '访问用户管理' },
-  { key: PERMISSIONS.PAGE_ROLES, name: '访问角色管理' },
-  { key: PERMISSIONS.PAGE_PERMISSIONS, name: '访问权限管理' },
-]
+const allPermissions = computed(() => [
+  { 
+    key: PERMISSIONS.USER_READ, 
+    name: '查看用户',
+    hasPermission: permissions.hasPermission(PERMISSIONS.USER_READ),
+    type: isCorePermission(PERMISSIONS.USER_READ) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.USER_WRITE, 
+    name: '编辑用户',
+    hasPermission: permissions.hasPermission(PERMISSIONS.USER_WRITE),
+    type: isCorePermission(PERMISSIONS.USER_WRITE) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.USER_DELETE, 
+    name: '删除用户',
+    hasPermission: permissions.hasPermission(PERMISSIONS.USER_DELETE),
+    type: isCorePermission(PERMISSIONS.USER_DELETE) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.ROLE_READ, 
+    name: '查看角色',
+    hasPermission: permissions.hasPermission(PERMISSIONS.ROLE_READ),
+    type: isCorePermission(PERMISSIONS.ROLE_READ) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.ROLE_WRITE, 
+    name: '编辑角色',
+    hasPermission: permissions.hasPermission(PERMISSIONS.ROLE_WRITE),
+    type: isCorePermission(PERMISSIONS.ROLE_WRITE) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.ROLE_DELETE, 
+    name: '删除角色',
+    hasPermission: permissions.hasPermission(PERMISSIONS.ROLE_DELETE),
+    type: isCorePermission(PERMISSIONS.ROLE_DELETE) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.PERMISSION_READ, 
+    name: '查看权限',
+    hasPermission: permissions.hasPermission(PERMISSIONS.PERMISSION_READ),
+    type: isCorePermission(PERMISSIONS.PERMISSION_READ) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.PERMISSION_WRITE, 
+    name: '编辑权限',
+    hasPermission: permissions.hasPermission(PERMISSIONS.PERMISSION_WRITE),
+    type: isCorePermission(PERMISSIONS.PERMISSION_WRITE) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.PERMISSION_DELETE, 
+    name: '删除权限',
+    hasPermission: permissions.hasPermission(PERMISSIONS.PERMISSION_DELETE),
+    type: isCorePermission(PERMISSIONS.PERMISSION_DELETE) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.DASHBOARD_ACCESS, 
+    name: '访问工作台',
+    hasPermission: permissions.hasPermission(PERMISSIONS.DASHBOARD_ACCESS),
+    type: isCorePermission(PERMISSIONS.DASHBOARD_ACCESS) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.USER_MGMT_ACCESS, 
+    name: '访问用户管理',
+    hasPermission: permissions.hasPermission(PERMISSIONS.USER_MGMT_ACCESS),
+    type: isCorePermission(PERMISSIONS.USER_MGMT_ACCESS) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.ROLE_MGMT_ACCESS, 
+    name: '访问角色管理',
+    hasPermission: permissions.hasPermission(PERMISSIONS.ROLE_MGMT_ACCESS),
+    type: isCorePermission(PERMISSIONS.ROLE_MGMT_ACCESS) ? 'core' : 'business'
+  },
+  { 
+    key: PERMISSIONS.PERM_MGMT_ACCESS, 
+    name: '访问权限管理',
+    hasPermission: permissions.hasPermission(PERMISSIONS.PERM_MGMT_ACCESS),
+    type: isCorePermission(PERMISSIONS.PERM_MGMT_ACCESS) ? 'core' : 'business'
+  },
+])
 
 // 测试方法
 const showTestMessage = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -505,8 +569,10 @@ const reloadPage = () => {
 }
 
 const clearPermissions = () => {
-  // 重置权限store状态
-  permissionsStore.$reset()
+  // 清除权限缓存
+  if (import.meta.client) {
+    localStorage.removeItem('user_permissions_cache')
+  }
   showTestMessage('权限缓存已清除', 'info')
 }
 </script> 

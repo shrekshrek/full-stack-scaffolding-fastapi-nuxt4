@@ -12,7 +12,7 @@ from src.rbac import service as rbac_service
 from src.users.dependencies import (
     require_user_read_or_self,
     require_user_write_or_self,
-    require_user_delete_not_self
+    require_user_delete_not_self,
 )
 
 router = APIRouter(
@@ -21,134 +21,142 @@ router = APIRouter(
 )
 
 
-@router.get("/me", response_model=auth_schemas.UserRead, status_code=status.HTTP_200_OK, summary="Get current user")
+@router.get(
+    "/me",
+    response_model=auth_schemas.UserRead,
+    status_code=status.HTTP_200_OK,
+    summary="Get current user",
+)
 async def read_users_me(
     current_user: auth_models.User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_async_db)
+    db: AsyncSession = Depends(get_async_db),
 ):
     """
     Get current logged in user information.
-    
+
     Returns the user profile information for the currently authenticated user.
     """
     # 获取用户的角色信息
     user_roles = await rbac_service.get_user_roles(db, current_user.id)
     role_names = [role.name for role in user_roles]
-    
-    # 构造包含角色信息的用户数据
-    user_data = auth_schemas.UserRead(
-        id=current_user.id,
-        username=current_user.username,
-        email=current_user.email,
-        created_at=current_user.created_at,
-        updated_at=current_user.updated_at,
-        roles=role_names
-    )
-    
-    return user_data
+
+    # 使用统一的转换函数
+    return service._convert_user_to_schema(current_user, role_names)
 
 
-@router.get("/", response_model=schemas.UserListResponse, status_code=status.HTTP_200_OK, summary="Get users list")
+@router.get(
+    "/",
+    response_model=schemas.UserListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get users list",
+)
 async def read_users(
     pagination: PaginationParams = Depends(get_pagination_params),
     db: AsyncSession = Depends(get_async_db),
-    _: auth_models.User = Depends(require_user_read)
+    _: auth_models.User = Depends(require_user_read),
 ):
     """
     Get list of users with pagination.
-    
+
     Returns a paginated list of users. Only accessible to users with user:read permission.
     """
     users, total = await service.get_users(db, pagination)
-    
-    # 为每个用户获取角色信息
-    user_list = []
-    for user in users:
-        user_data = await service.get_user_with_roles(db, user.id)
-        if user_data:
-            user_list.append(user_data)
-    
+
+    # 批量获取用户和角色信息，避免N+1查询
+    user_list = await service.get_users_with_roles_batch(db, users)
+
     return schemas.UserListResponse.create(
         items=user_list,
         total=total,
         page=pagination.page,
-        page_size=pagination.page_size
+        page_size=pagination.page_size,
     )
 
 
-@router.get("/{user_id}", response_model=auth_schemas.UserRead, status_code=status.HTTP_200_OK, summary="Get user by ID")
+@router.get(
+    "/{user_id}",
+    response_model=auth_schemas.UserRead,
+    status_code=status.HTTP_200_OK,
+    summary="Get user by ID",
+)
 async def read_user(
     user_id: int,
     db: AsyncSession = Depends(get_async_db),
-    current_user: auth_models.User = Depends(require_user_read_or_self)
+    current_user: auth_models.User = Depends(require_user_read_or_self),
 ):
     """
     Get user by ID.
-    
+
     Users can access their own information, or users with user:read permission can access any user.
     """
-    
+
     user_data = await service.get_user_with_roles(db, user_id)
     if not user_data:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return user_data
 
 
-@router.put("/{user_id}", response_model=auth_schemas.UserRead, status_code=status.HTTP_200_OK, summary="Update user")
+@router.put(
+    "/{user_id}",
+    response_model=auth_schemas.UserRead,
+    status_code=status.HTTP_200_OK,
+    summary="Update user",
+)
 async def update_user(
     user_id: int,
     user_update: schemas.UserUpdate,
     db: AsyncSession = Depends(get_async_db),
-    current_user: auth_models.User = Depends(require_user_write_or_self)
+    current_user: auth_models.User = Depends(require_user_write_or_self),
 ):
     """
     Update user information.
     """
-    
+
     # 注意：UserUpdate 中不再包含 role 字段，角色管理通过 RBAC API 进行
-    
+
     user = await service.update_user(db, user_id, user_update)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     # 获取更新后的用户信息，包含角色信息
     user_data = await service.get_user_with_roles(db, user_id)
     return user_data
 
 
-@router.delete("/{user_id}", response_model=auth_schemas.UserRead, status_code=status.HTTP_200_OK, summary="Delete user")
+@router.delete(
+    "/{user_id}",
+    response_model=auth_schemas.UserRead,
+    status_code=status.HTTP_200_OK,
+    summary="Delete user",
+)
 async def delete_user(
     user_id: int,
     db: AsyncSession = Depends(get_async_db),
     current_user: auth_models.User = Depends(require_user_delete),
-    _: auth_models.User = Depends(require_user_delete_not_self)
+    _: auth_models.User = Depends(require_user_delete_not_self),
 ):
     """
     Delete user.
     """
-    
+
     # 先获取要删除的用户信息（包含角色）
     user_data = await service.get_user_with_roles(db, user_id)
     if not user_data:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     # 执行删除操作
     success = await service.delete_user(db, user_id)
     if not success:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     # 返回被删除的用户信息
-    return user_data 
+    return user_data

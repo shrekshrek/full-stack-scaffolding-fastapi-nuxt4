@@ -27,13 +27,11 @@ backend/
 │   │   ├── schemas.py    # Pydantic 模型
 │   │   ├── models.py     # SQLAlchemy 数据库模型
 │   │   ├── service.py    # 业务逻辑
-│   │   ├── tasks.py      # Celery 异步任务
 │   │   ├── dependencies.py # 依赖项
 │   │   ├── constants.py  # 模块级常量
 │   │   ├── exceptions.py # 模块级异常
 │   │   ├── utils.py      # 模块级工具函数
 │   │   ├── security.py   # 密码哈希、JWT等安全工具
-│   │   ├── email.py      # 邮件发送功能
 │   │   └── blacklist.py  # JWT黑名单管理
 │   ├── rbac/             # 【领域模块】权限管理 (RBAC)
 │   │   ├── router.py     # 权限、角色管理 API
@@ -46,7 +44,7 @@ backend/
 │   │   └── ...
 │   ├── celery_app.py     # Celery 应用实例
 │   ├── database.py       # 数据库连接与配置
-│   ├── redis.py          # Redis 连接配置
+│   ├── redis_client.py   # Redis 连接配置
 │   ├── config.py         # 全局配置
 │   ├── exceptions.py     # 全局异常类定义
 │   ├── middleware.py     # 全局中间件（异常处理、日志等）
@@ -58,10 +56,8 @@ backend/
 │   └── test_*.py         # 具体测试文件
 ├── .env.example          # 环境变量模板
 ├── uv.lock                 # 锁定的依赖版本 (由 uv 自动生成)
-├── pyproject.toml        # Poetry 依赖与项目配置
+├── pyproject.toml        # uv 依赖与项目配置 (PEP 621 格式)
 ├── README.md               # 后端 spezifische Anleitung
-├── scripts/                # 辅助脚本
-│   └── bootstrap.py      # 初始化脚本
 ├── logging.ini           # 日志配置（生产环境推荐）
 └── alembic.ini           # Alembic 配置文件
 ```
@@ -206,8 +202,8 @@ async def get_user(user_id: int):
 
 标准化的工具链可以自动化繁琐任务，保障项目质量。
 
-#### 依赖管理 (Poetry)
-- **强制使用**: **必须**使用 `uv` 作为唯一的包和依赖管理器，以利用其现代化的解析和锁定机制。
+#### 依赖管理 (uv)
+- **强制使用**: **必须**使用 `uv` 作为唯一的包和依赖管理器，以利用其高性能和现代化的工具链。
 - **添加依赖**:
   ```bash
   # 在 backend 容器中运行
@@ -240,11 +236,22 @@ async def get_user(user_id: int):
 #### 异步任务队列 (Celery)
 - **标准选择**: 使用 `Celery` 作为处理所有后台和异步任务的标准框架。
 - **消息代理**: 生产和开发环境均使用 `Redis` 作为消息代理 (Broker) 和结果后端 (Result Backend)。
-- **任务定义**: Celery 任务应定义在对应领域模块的 `tasks.py` 文件中，以保持代码的组织性。
+- **任务定义**: Celery 任务应定义在对应领域模块的 `tasks.py` 文件中，以保持代码的组织性。当模块不需要后台任务时，可以不创建此文件。
 
 #### LLM 应用开发 (LangChain)
 - **核心框架**: 使用 `LangChain` 作为构建语言模型应用和工作流的核心框架。
 - **版本要求**: 项目锁定使用 `LangChain v0.3+` 系列版本。
+
+#### 权限系统开发 (RBAC)
+
+**快速添加模块权限**:
+```python
+# src/rbac/init_data.py
+*create_module_permissions("new_module", ["access", "read", "write"])
+```
+
+详细的模块开发流程见 [`docs/MODULAR_DEVELOPMENT.md`](../docs/MODULAR_DEVELOPMENT.md)  
+权限系统技术原理见 [`docs/PERMISSION_MANAGEMENT.md`](../docs/PERMISSION_MANAGEMENT.md)
 
 ---
 
@@ -256,6 +263,6 @@ async def get_user(user_id: int):
 2.  **启动开发服务器**:
     - 在项目根目录打开 **两个** 终端。
     - **终端 1**: 运行 `pnpm be:dev` 启动 FastAPI 服务器。
-    - **终端 2**: 运行 `pnpm be:worker` 启动 Celery Worker。
+    - **终端 2**: 运行 `pnpm be:worker` 启动 Celery Worker（如果有后台任务需要处理）。
 3.  **访问 API**:
     - API 文档位于 [http://localhost:8000/docs](http://localhost:8000/docs)。 

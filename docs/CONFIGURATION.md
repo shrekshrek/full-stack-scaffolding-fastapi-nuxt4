@@ -68,11 +68,6 @@ BACKEND_CORS_ORIGINS=["https://yourdomain.com"]
 NUXT_PUBLIC_API_BASE_URL=https://yourdomain.com
 NUXT_SESSION_PASSWORD=CHANGE_THIS_MUST_BE_AT_LEAST_32_CHARS_USE_OPENSSL
 
-# ===== 邮件配置（生产环境） =====
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
 ```
 
 ## 🔐 安全密钥生成
@@ -236,7 +231,6 @@ echo -n $NUXT_SESSION_PASSWORD | wc -c # 应该至少32字符
 - [ ] `NUXT_SESSION_PASSWORD` 至少32字符
 - [ ] `SECRET_KEY` 使用 `openssl rand -hex 32` 生成
 - [ ] `BACKEND_CORS_ORIGINS` 包含正确的域名
-- [ ] SMTP配置已更新为实际邮件服务器
 
 ## 📊 配置对照表
 

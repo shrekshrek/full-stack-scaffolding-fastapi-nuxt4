@@ -94,6 +94,7 @@
 import { h, ref, computed, watch, resolveComponent } from "vue";
 import type { User } from "../../types";
 import type { TableColumn } from "@nuxt/ui";
+import { getRoleDisplayName } from "../../../rbac/utils/permissions";  // 明确的跨模块依赖
 
 // 页面元数据
 definePageMeta({
@@ -190,15 +191,6 @@ const handleRefresh = async () => {
 };
 
 // 工具函数
-const getRoleDisplayName = (roleName: string): string => {
-  const roleLabels: Record<string, string> = {
-    super_admin: "超级管理员",
-    admin: "管理员",
-    user: "普通用户",
-  };
-  return roleLabels[roleName] || roleName;
-};
-
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("zh-CN", {
     year: "numeric",

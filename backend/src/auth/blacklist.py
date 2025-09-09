@@ -9,7 +9,7 @@ async def add_token_to_blacklist(
 ):
     """
     Adds a token to the blacklist with an expiration time.
-    
+
     Args:
         redis_client: Redis client instance
         token: JWT token to blacklist
@@ -21,12 +21,12 @@ async def add_token_to_blacklist(
 async def is_token_blacklisted(redis_client: redis.Redis, token: str) -> bool:
     """
     Checks if a token is in the blacklist.
-    
+
     Args:
         redis_client: Redis client instance
         token: JWT token to check
-        
+
     Returns:
         bool: True if token is blacklisted, False otherwise
     """
-    return await redis_client.exists(f"{REDIS_BLACKLIST_PREFIX}{token}") 
+    return await redis_client.exists(f"{REDIS_BLACKLIST_PREFIX}{token}")

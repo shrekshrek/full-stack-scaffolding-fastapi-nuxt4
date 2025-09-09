@@ -2,9 +2,12 @@
 name = "fastapi-app"
 version = "0.1.0"
 description = "FastAPI backend for the full-stack application"
-authors = [{ name = "Shrek Wang", email = "shrek.wang@example.com" }]
-requires-python = ">=3.11,<4.0"
-license = "MIT"
+authors = [
+    {name = "Shrek Wang", email = "shrek.wang@example.com"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.11"
+
 dependencies = [
     "fastapi>=0.113.1",
     "uvicorn>=0.30.5",
@@ -20,34 +23,41 @@ dependencies = [
     "flower>=2.0.1",
     "langchain>=0.3.4",
     "asyncpg>=0.30.0",
-    "aiosmtplib>=4.0.1",
-    "jinja2>=3.1.6",
-    "libpass[bcrypt]>=1.9.1.post0",
-    "slowapi>=0.1.9,<0.2",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.0.0,<4.2.0",
+    "slowapi>=0.1.9"
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "pytest>=8.4.0",
     "pytest-asyncio>=0.23.8",
     "httpx>=0.27.0",
     "greenlet>=3.2.3",
     "pytest-env>=1.1.5",
-    "asyncpg>=0.30.0,<0.31",
+    "ruff>=0.12.12"
 ]
-
-[tool.hatch.build.targets.sdist]
-include = ["src"]
-
-[tool.hatch.build.targets.wheel]
-include = ["src"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = [
   "src",
 ]
 asyncio_mode = "auto"
+
+[tool.uv]
+# uv 特定配置
+dev-dependencies = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.23.8", 
+    "httpx>=0.27.0",
+    "greenlet>=3.2.3",
+    "pytest-env>=1.1.5",
+    "ruff>=0.12.12"
+]

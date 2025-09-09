@@ -19,21 +19,32 @@
 
 ## 核心配置文件
 
-### 环境配置 (v2.0 统一管理)
+### 环境配置
 - **开发环境**: `.env` - 本地开发配置
-- **生产环境**: `.env.production` - 所有服务统一配置 ⭐
+- **生产环境**: `.env.production` - 所有服务统一配置
 - **配置文档**: `docs/CONFIGURATION.md` - 详细配置管理指南
 
 ### 前端配置
-- **API认证配置**: `frontend/config/api-auth.ts` - 集中管理API路径认证需求
-- **路由权限配置**: `frontend/config/routes.ts` - 页面路由的认证和权限要求
-- **权限定义**: `frontend/config/permissions.ts` - 细粒度权限定义
+- **统一路由权限**: `frontend/config/routes.ts` - 统一管理所有路由权限配置
+- **权限常量定义**: `frontend/config/permissions.ts` - 与后端完全一致的权限常量
+- **模块注册**: `frontend/nuxt.config.ts` - 新增模块时必须在 `extends` 数组中添加对应 layer
 
-### 新模块添加
-添加新业务模块时，只需调整 2-3 个配置文件：
-1. `config/routes.ts` - 添加页面路由配置
-2. `config/api-auth.ts` - 添加公开API路径（如需要）
-3. `config/permissions.ts` - 添加权限定义（如需要）
+## 权限管理
+
+权限采用代码驱动模式，启动时自动同步。
+
+**快速添加权限**：
+```python
+*create_module_permissions("new_module", ["access", "read", "write"])
+# 重启服务后自动同步
+```
+
+**详细指南**：
+- 模块开发流程见 [`docs/MODULAR_DEVELOPMENT.md`](docs/MODULAR_DEVELOPMENT.md)
+- 权限系统原理见 [`docs/PERMISSION_MANAGEMENT.md`](docs/PERMISSION_MANAGEMENT.md)
+
+## 当前版本信息
+- **Nuxt版本**: 4.1.0（注：4.1.1存在reka-ui兼容性问题，暂不升级）
 
 ## Claude 特定指令
 
@@ -68,12 +79,17 @@ pnpm fe:lint        # 或 cd frontend && pnpm lint
 
 #### 环境管理
 - `pnpm setup` - 首次安装所有依赖
-- `pnpm dev` - 启动完整开发环境
+- `pnpm dev` - 启动完整开发环境（自动执行数据库迁移和初始化）
 - `pnpm stop` - 停止所有服务
+
+> 注：首次运行 `pnpm dev` 时会自动创建：
+> - 所有数据库表结构
+> - 基础权限和角色数据
+> - 默认管理员账号（admin/admin123）
 
 #### 数据库操作
 - `pnpm be:migrate:make "描述"` - 创建数据库迁移
-- `pnpm be:migrate:up` - 执行数据库迁移
+- `pnpm be:migrate:up` - 执行数据库迁移（自动包含初始化数据）
 
 #### 依赖管理
 - `pnpm be:add <package>` - 添加后端依赖

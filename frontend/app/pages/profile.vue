@@ -116,22 +116,42 @@
           <h2 class="text-lg font-semibold">账户信息</h2>
         </template>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              注册时间
-            </label>
-            <p class="text-gray-900 dark:text-gray-100">
-              {{ formatDate(data.created_at) }}
-            </p>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                注册时间
+              </label>
+              <p class="text-gray-900 dark:text-gray-100">
+                {{ formatDate(data.created_at) }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                最后更新
+              </label>
+              <p class="text-gray-900 dark:text-gray-100">
+                {{ formatDate(data.updated_at) }}
+              </p>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              最后更新
-            </label>
-            <p class="text-gray-900 dark:text-gray-100">
-              {{ formatDate(data.updated_at) }}
-            </p>
+          
+          <!-- 快速链接到设置页面 -->
+          <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">账户设置</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">管理密码和安全设置</p>
+              </div>
+              <UButton
+                variant="outline"
+                size="sm"
+                icon="i-heroicons-cog-6-tooth"
+                to="/settings"
+              >
+                前往设置
+              </UButton>
+            </div>
           </div>
         </div>
       </UCard>

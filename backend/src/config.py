@@ -8,12 +8,13 @@ class Settings(BaseSettings):
     Global settings for the application.
     Loaded from environment variables and/or a .env file.
     """
+
     # Environment settings
     ENVIRONMENT: str = "development"
 
     # Database settings
     DATABASE_URL: str = "postgresql+psycopg://user:password@localhost/dbname"
-    
+
     # Database connection pool settings
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 20
@@ -32,47 +33,40 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     PROJECT_NAME: str = "Full-Stack Starter API"
     VERSION: str = "0.1.0"
-    
+
     # CORS settings
     BACKEND_CORS_ORIGINS: List[str] = Field(
         default=["http://localhost:3000", "http://localhost:8000"],
-        description="Allowed CORS origins"
+        description="Allowed CORS origins",
     )
 
     # Auth settings
     SECRET_KEY: str = Field(
         default="a_very_secret_key_for_development_only_change_in_production",
         min_length=32,
-        description="Secret key for JWT encoding"
+        description="Secret key for JWT encoding",
     )
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     PASSWORD_MIN_LENGTH: int = 8
-    
+
     # Rate limiting
     RATE_LIMIT_PER_MINUTE: int = 60
 
-    # Email settings
-    SMTP_HOST: str = "mailhog"  # Docker service name
-    SMTP_PORT: int = 1025
-    SMTP_USERNAME: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM_EMAIL: str = "noreply@example.com"
-    SMTP_FROM_NAME: str = "全栈项目脚手架"
-    
     @field_validator("SECRET_KEY")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
         """Validate that SECRET_KEY is secure in production"""
         if "development_only" in v:
             import os
+
             if os.getenv("ENVIRONMENT", "development") == "production":
                 raise ValueError(
                     "请设置一个安全的 SECRET_KEY！可以使用以下命令生成: "
                     "openssl rand -hex 32"
                 )
         return v
-    
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
@@ -89,6 +83,4 @@ class Settings(BaseSettings):
     )
 
 
-
-
-settings = Settings() 
+settings = Settings()

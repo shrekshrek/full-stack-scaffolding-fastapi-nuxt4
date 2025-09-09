@@ -31,7 +31,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/.venv
-    command: uv run --no-sync uvicorn src.main:app --host 0.0.0.0 --reload
+    command: sh -c "uv run alembic upgrade head && uv run uvicorn src.main:app --host 0.0.0.0 --reload"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
@@ -44,13 +44,6 @@ services:
       - postgres_db
       - redis
 
-  mailhog:
-    image: mailhog/mailhog
-    platform: linux/amd64
-    container_name: mailhog
-    ports:
-      - "1025:1025" # SMTP server
-      - "8025:8025" # Web UI
 
 volumes:
   postgres_data: 

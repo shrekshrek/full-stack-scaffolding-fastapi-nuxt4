@@ -1,67 +1,55 @@
 <template>
   <UCard v-if="permission" class="shadow-sm">
     <template #header>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-full bg-success-100 dark:bg-success-900 flex items-center justify-center">
+      <div class="space-y-4">
+        <!-- 权限基本信息 -->
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-full bg-success-100 dark:bg-success-900 flex items-center justify-center flex-shrink-0">
             <UIcon name="i-heroicons-shield-check" class="w-6 h-6 text-success-600 dark:text-success-400" />
           </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ permission.display_name }}</h2>
-            <p class="text-gray-500 dark:text-gray-400">{{ permission.name }}</p>
-            <div class="mt-1 flex items-center gap-2">
-              <UBadge
-                :color="permission.is_system ? 'warning' : 'neutral'"
-                variant="soft"
-                size="sm"
-              >
-                {{ permission.is_system ? '系统权限' : '自定义权限' }}
-              </UBadge>
-              <div class="flex items-center space-x-1">
-                <UBadge color="primary" variant="soft" size="sm">
-                  {{ permission.resource }}
-                </UBadge>
-                <span class="text-gray-400 text-xs">:</span>
-                <UBadge color="success" variant="soft" size="sm">
-                  {{ permission.action }}
-                </UBadge>
-              </div>
-            </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words">{{ permission.display_name }}</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-mono">{{ permission.target }}:{{ permission.action }}</p>
           </div>
         </div>
         
-        <div class="flex items-center gap-2">
-          <UButton
-            v-if="canEdit && !permission.is_system"
-            icon="i-heroicons-pencil-square"
-            variant="outline"
+        <!-- 权限标签 -->
+        <div class="flex flex-wrap items-center gap-2">
+          <UBadge
+            :color="getPermissionTypeColor(permission)"
+            variant="soft"
             size="sm"
-            color="primary"
-            @click="$emit('edit')"
           >
-            编辑
-          </UButton>
-          
-          <UButton
-            v-if="canDelete && !permission.is_system"
-            icon="i-heroicons-trash"
-            variant="outline"
-            size="sm"
-            color="error"
-            @click="$emit('delete')"
-          >
-            删除
-          </UButton>
+            {{ getPermissionTypeLabel(permission) }}
+          </UBadge>
+          <div class="flex items-center space-x-1">
+            <UBadge color="primary" variant="soft" size="sm">
+              {{ permission.target }}
+            </UBadge>
+            <span class="text-gray-400 text-xs">:</span>
+            <UBadge color="success" variant="soft" size="sm">
+              {{ permission.action }}
+            </UBadge>
+          </div>
         </div>
       </div>
     </template>
+
+    <!-- 代码驱动权限管理说明 -->
+    <UAlert
+      color="info"
+      variant="soft"
+      icon="i-heroicons-code-bracket"
+      title="权限管理方式"
+      description="此权限通过代码定义和管理 (backend/src/rbac/init_data.py)，如需修改请通过开发流程更新代码。"
+    />
 
     <div class="space-y-6">
       <!-- 基本信息 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-1">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">权限名称</label>
-          <p class="text-gray-900 dark:text-gray-100 font-medium">{{ permission.name }}</p>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">权限标识</label>
+          <p class="text-gray-900 dark:text-gray-100 font-medium font-mono">{{ permission.target }}:{{ permission.action }}</p>
         </div>
         
         <div class="space-y-1">
@@ -70,9 +58,9 @@
         </div>
         
         <div class="space-y-1">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">资源</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">目标</label>
           <UBadge color="primary" variant="soft">
-            {{ permission.resource }}
+            {{ permission.target }}
           </UBadge>
         </div>
         
@@ -86,11 +74,11 @@
         <div class="space-y-1">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">类型</label>
           <UBadge
-            :color="permission.is_system ? 'warning' : 'neutral'"
+            :color="getPermissionTypeColor(permission)"
             variant="soft"
             size="sm"
           >
-            {{ permission.is_system ? '系统权限' : '自定义权限' }}
+            {{ getPermissionTypeLabel(permission) }}
           </UBadge>
         </div>
         
@@ -106,8 +94,8 @@
         <p class="text-gray-900 dark:text-gray-100">{{ permission.description || '-' }}</p>
       </div>
 
-      <!-- 系统权限警告 -->
-      <div v-if="permission.is_system" class="space-y-1">
+      <!-- RBAC核心权限提示 -->
+      <div v-if="permission.target && ['user', 'role', 'permission'].includes(permission.target)" class="space-y-1">
         <UAlert
           color="warning"
           variant="soft"
@@ -117,19 +105,15 @@
         />
       </div>
 
-      <!-- 时间信息 -->
+      <!-- 权限管理说明 -->
       <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">创建时间</label>
-            <p class="text-gray-900 dark:text-gray-100">{{ formatDate(permission.created_at) }}</p>
-          </div>
-          
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">更新时间</label>
-            <p class="text-gray-900 dark:text-gray-100">{{ formatDate(permission.updated_at) }}</p>
-          </div>
-        </div>
+        <UAlert
+          color="info"
+          variant="soft"
+          icon="i-heroicons-information-circle"
+          title="权限管理说明"
+          description="此权限通过代码定义和管理，如需修改请通过开发流程更新代码。"
+        />
       </div>
     </div>
   </UCard>
@@ -142,34 +126,42 @@
 </template>
 
 <script setup lang="ts">
-import type { Permission } from '../types'
+import type { PermissionWithMeta as Permission } from '../types'
 
-// Props
+// Props - 简化为只读组件
 interface Props {
   permission?: Permission | null
-  canEdit?: boolean
-  canDelete?: boolean
 }
 
 const _props = withDefaults(defineProps<Props>(), {
-  permission: null,
-  canEdit: false,
-  canDelete: false
+  permission: null
 })
 
-// Emits
-const _emit = defineEmits<{
-  'edit': []
-  'delete': []
-}>()
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+// 权限类型分类函数 - 基于业务逻辑而非创建方式
+const getPermissionTypeLabel = (permission: Permission): string => {
+  // 根据目标模块和操作类型判断权限类别
+  if (permission.action === 'access') {
+    return '页面访问权限'
+  }
+  
+  if (['user', 'role', 'permission'].includes(permission.target)) {
+    return 'RBAC核心权限'
+  }
+  
+  return '业务功能权限'
 }
+
+const getPermissionTypeColor = (permission: Permission): "primary" | "secondary" | "success" | "warning" | "error" | "info" | "neutral" => {
+  // 根据权限类型返回对应的颜色
+  if (permission.action === 'access') {
+    return 'info'  // 页面权限用info色
+  }
+  
+  if (['user', 'role', 'permission'].includes(permission.target)) {
+    return 'warning'  // RBAC核心权限用warning色
+  }
+  
+  return 'success'  // 业务权限用success色
+}
+
 </script> 

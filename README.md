@@ -12,9 +12,10 @@
     -   **后端**: FastAPI, PostgreSQL, SQLAlchemy (异步), Celery, Redis
     -   **前端**: Nuxt 4, Vue 3, Pinia, `@nuxt/ui`, Tailwind CSS
 -   **完全容器化**: 使用 Docker 和 Docker Compose 提供一致、可复现的开发与生产环境。
--   **动态RBAC权限系统**:
-    -   通过UI界面动态管理角色和权限，无需修改代码。
+-   **代码驱动RBAC权限系统**:
+    -   权限在代码中定义，启动时自动同步到数据库，确保一致性。
     -   前端 `usePermissions` 组合式函数和 `<PermissionGuard>` 组件，轻松实现细粒度权限控制。
+    -   支持权限的完全自动化管理（增删改），开发者零配置。
 -   **Nuxt Layers 架构**: 前端采用领域驱动设计，模块化、可扩展性强。
 -   **统一的API与错误处理**: 全局 `useApi` 组合式函数，简化API调用，自动处理加载状态、错误和认证。
 -   **类型安全**: 从数据库到API，再到前端组件，全程使用 TypeScript 和 Pydantic，提供端到端的类型安全。
@@ -53,7 +54,6 @@ pnpm dev
 启动后：
 -   **前端应用** 访问: `http://localhost:3000`
 -   **后端API文档** 访问: `http://localhost:8000/docs`
--   **邮件服务 (MailHog)** 访问: `http://localhost:8025`
 
 ---
 
@@ -88,6 +88,25 @@ pnpm dev
 
 ---
 
+## 📚 文档导航
+
+**🚀 快速上手**：
+- 新项目开始：本文档 → [快速开始](#🚀-快速开始)
+- 开发环境：本文档 → [主要命令](#📚-主要命令)
+
+**👨‍💻 开发指南**：
+- 模块化开发：[`docs/MODULAR_DEVELOPMENT.md`](docs/MODULAR_DEVELOPMENT.md) ⭐ 新手必读
+- 后端规范：[`backend/CONTRIBUTING.md`](backend/CONTRIBUTING.md)
+- 前端规范：[`frontend/CONTRIBUTING.md`](frontend/CONTRIBUTING.md)
+- 工作流程：[`docs/WORKFLOW.md`](docs/WORKFLOW.md)
+
+**⚙️ 专项功能**：
+- 权限管理：[`docs/PERMISSION_MANAGEMENT.md`](docs/PERMISSION_MANAGEMENT.md)
+- 配置管理：[`docs/CONFIGURATION.md`](docs/CONFIGURATION.md)
+- Claude配置：[`CLAUDE.md`](CLAUDE.md)
+
+---
+
 ## 🧭 深入了解
 
 想要更深入地理解本项目的设计和工作流程？请查阅以下文档：
@@ -97,5 +116,4 @@ pnpm dev
 -   **开发工作流**: [`docs/WORKFLOW.md`](./docs/WORKFLOW.md) - 了解如何从零开始开发一个新功能。
 -   **前端架构**: [`docs/frontend-architecture.md`](./docs/frontend-architecture.md) - 深入理解前端 Nuxt Layers 架构。
 -   **后端架构**: [`docs/backend-architecture.md`](./docs/backend-architecture.md) - 深入理解后端 FastAPI 模块化设计。
--   **动态权限系统**: [`docs/dynamic-rbac-guide.md`](./docs/dynamic-rbac-guide.md) - 学习如何使用和管理动态权限。
--   **权限工作流**: [`docs/rbac-workflow-guide.md`](./docs/rbac-workflow-guide.md) - 理解动态权限的开发模式。 
+-   **权限管理指南**: [`docs/PERMISSION_MANAGEMENT.md`](./docs/PERMISSION_MANAGEMENT.md) - 代码驱动的权限管理系统详解。 

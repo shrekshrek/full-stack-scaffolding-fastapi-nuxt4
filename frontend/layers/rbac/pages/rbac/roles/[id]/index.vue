@@ -47,6 +47,9 @@
 </template>
 
 <script setup lang="ts">
+import { isCoreRole } from "../../../../utils/permissions";
+import { PERMISSIONS } from "../../../../../../config/permissions";
+
 // 页面元数据
 definePageMeta({
   title: "角色详情",
@@ -66,12 +69,12 @@ const permissions = usePermissions();
 
 const canEdit = computed(() => {
   if (!data.value) return false;
-  return permissions.hasPermission('role:write');
+  return permissions.hasPermission(PERMISSIONS.ROLE_WRITE);
 });
 
 const canDelete = computed(() => {
   if (!data.value) return false;
-  return permissions.hasPermission('role:delete') && !data.value.is_system;
+  return permissions.hasPermission(PERMISSIONS.ROLE_DELETE) && !isCoreRole(data.value?.name);
 });
 
 // 事件处理
