@@ -40,7 +40,9 @@ async def authenticate_user(
     return user
 
 
-async def create_user(db: AsyncSession, user: schemas.UserCreate):
+async def create_user(
+    db: AsyncSession, user: schemas.UserCreate, role_ids: list[int] | None = None
+):
     """
     创建新用户
     """
@@ -70,11 +72,16 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate):
     await db.commit()
     await db.refresh(db_user)
 
-    # 为新用户分配默认角色 (普通用户角色)
-    default_role = await rbac_service.get_role_by_name(db, SystemRoles.USER)
-    if default_role:
-        # 分配角色给新用户
-        await rbac_service.assign_user_roles(db, db_user.id, [default_role.id])
+    # 分配角色
+    if role_ids:
+        # 去重保持原有顺序
+        unique_role_ids = list(dict.fromkeys(role_ids))
+        await rbac_service.assign_user_roles(db, db_user.id, unique_role_ids)
+    else:
+        # 为新用户分配默认角色 (普通用户角色)
+        default_role = await rbac_service.get_role_by_name(db, SystemRoles.USER)
+        if default_role:
+            await rbac_service.assign_user_roles(db, db_user.id, [default_role.id])
 
     return db_user
 

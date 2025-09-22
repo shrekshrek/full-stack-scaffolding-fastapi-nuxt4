@@ -7,6 +7,8 @@ from src.auth import schemas as auth_schemas
 from src.users import schemas
 from src.pagination import PaginationParams
 from src.rbac import service as rbac_service
+from src.auth import service as auth_service
+from fastapi import HTTPException, status
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
@@ -133,3 +135,38 @@ def _convert_user_to_schema(user: User, role_names: List[str]) -> auth_schemas.U
         updated_at=user.updated_at,
         roles=role_names,
     )
+
+
+async def create_user_admin(
+    db: AsyncSession, user_create: schemas.UserAdminCreate
+) -> auth_schemas.UserRead:
+    """管理员创建用户，并可选分配角色"""
+
+    role_ids: list[int] | None = None
+    if user_create.role_ids:
+        # 去重并验证角色是否存在
+        unique_role_ids = list(dict.fromkeys(user_create.role_ids))
+        role_ids = []
+        for role_id in unique_role_ids:
+            role = await rbac_service.get_role_by_id(db, role_id)
+            if not role:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"角色ID {role_id} 不存在",
+                )
+            role_ids.append(role_id)
+
+    # 复用通用创建逻辑
+    new_user = await auth_service.create_user(
+        db,
+        auth_schemas.UserCreate(
+            username=user_create.username,
+            email=user_create.email,
+            password=user_create.password,
+        ),
+        role_ids=role_ids,
+    )
+
+    user_roles = await rbac_service.get_user_roles(db, new_user.id)
+    role_names = [role.name for role in user_roles]
+    return _convert_user_to_schema(new_user, role_names)

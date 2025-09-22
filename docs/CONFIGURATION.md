@@ -30,7 +30,7 @@ POSTGRES_PASSWORD=postgres
 POSTGRES_DB=fastapi_db
 
 # ===== 后端配置 =====
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres_db:5432/fastapi_db
+DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres_db:5432/fastapi_db
 REDIS_URL=redis://redis:6379
 SECRET_KEY=your-secret-key-for-development-only
 PROJECT_NAME=Full-Stack Starter API
@@ -38,7 +38,7 @@ API_PREFIX=/api/v1
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # ===== 前端配置 =====
-NUXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NUXT_PUBLIC_API_BASE=http://localhost:8000/api/v1
 NUXT_SESSION_PASSWORD=this-is-a-32-character-string-for-dev-only!
 ```
 
@@ -56,7 +56,7 @@ POSTGRES_PASSWORD=CHANGE_THIS_STRONG_PASSWORD
 POSTGRES_DB=fastapi_db
 
 # ===== 后端配置 =====
-DATABASE_URL=postgresql+asyncpg://postgres:CHANGE_THIS_STRONG_PASSWORD@postgres_db:5432/fastapi_db
+DATABASE_URL=postgresql+psycopg://postgres:CHANGE_THIS_STRONG_PASSWORD@postgres_db:5432/fastapi_db
 REDIS_URL=redis://redis:6379
 SECRET_KEY=CHANGE_THIS_USE_OPENSSL_RAND_HEX_32_TO_GENERATE
 PROJECT_NAME=Production API
@@ -65,10 +65,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 BACKEND_CORS_ORIGINS=["https://yourdomain.com"]
 
 # ===== 前端配置 =====
-NUXT_PUBLIC_API_BASE_URL=https://yourdomain.com
+NUXT_PUBLIC_API_BASE=https://yourdomain.com/api/v1
 NUXT_SESSION_PASSWORD=CHANGE_THIS_MUST_BE_AT_LEAST_32_CHARS_USE_OPENSSL
 
 ```
+
+> ℹ️ **提示**：应用在初始化数据库引擎时会自动将 `postgresql+psycopg://` 的连接字符串转换为异步驱动 `postgresql+asyncpg://`，因此无需手动修改上述配置。
+
+> ⚠️ **注意**：`NUXT_PUBLIC_API_BASE` 必须是带协议的完整地址（如 `https://example.com/api/v1`），否则前端代理会拒绝请求并返回 500。
 
 ## 🔐 安全密钥生成
 
@@ -211,7 +215,7 @@ docker-compose exec backend python -c "from src.database import engine; print('C
 #### 2. 前后端通信失败
 ```bash
 # 检查API地址配置
-echo $NUXT_PUBLIC_API_BASE_URL
+echo $NUXT_PUBLIC_API_BASE
 
 # 检查CORS配置
 echo $BACKEND_CORS_ORIGINS
@@ -248,8 +252,6 @@ echo -n $NUXT_SESSION_PASSWORD | wc -c # 应该至少32字符
 - [部署指南](../DEPLOYMENT.md) - 完整的部署流程
 - [后端架构](./backend-architecture.md) - 后端配置详解
 - [GitLab CI/CD变量](./GITLAB_CI_VARIABLES.md) - CI/CD配置
-- [开发规范](../CLAUDE.md) - 项目开发规范
+- [开发规范](../AGENTS.md) - 项目开发规范
 
 ---
-
-*最后更新: 2025-08-19*

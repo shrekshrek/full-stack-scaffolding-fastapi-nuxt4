@@ -48,39 +48,12 @@
 
             <template v-if="status === 'authenticated'">
               <NuxtLink
-                v-if="permissions.canAccessDashboard"
-                to="/dashboard"
+                v-for="item in navigationLinks"
+                :key="item.path"
+                :to="item.path"
                 class="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                工作台
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessDashboard"
-                to="/charts"
-                class="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                图表
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessUsersPage"
-                to="/users"
-                class="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                用户管理
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessRolesPage"
-                to="/rbac/roles"
-                class="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                角色管理
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessPermissionsPage"
-                to="/rbac/permissions"
-                class="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                权限管理
+                {{ item.label }}
               </NuxtLink>
 
               <UDropdownMenu :items="userMenuItems" :content="{ align: 'end' }">
@@ -176,44 +149,13 @@
           <div class="py-4 space-y-2">
             <template v-if="status === 'authenticated'">
               <NuxtLink
-                v-if="permissions.canAccessDashboard"
-                to="/dashboard"
+                v-for="item in navigationLinks"
+                :key="item.path"
+                :to="item.path"
                 class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
                 @click="isMobileMenuOpen = false"
               >
-                工作台
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessDashboard"
-                to="/charts"
-                class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
-                @click="isMobileMenuOpen = false"
-              >
-                图表
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessUsersPage"
-                to="/users"
-                class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
-                @click="isMobileMenuOpen = false"
-              >
-                用户管理
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessRolesPage"
-                to="/rbac/roles"
-                class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
-                @click="isMobileMenuOpen = false"
-              >
-                角色管理
-              </NuxtLink>
-              <NuxtLink
-                v-if="permissions.canAccessPermissionsPage"
-                to="/rbac/permissions"
-                class="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
-                @click="isMobileMenuOpen = false"
-              >
-                权限管理
+                {{ item.label }}
               </NuxtLink>
 
               <!-- 分割线 -->
@@ -304,6 +246,8 @@
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
+import { getNavigationItems, getRoutePermissions } from "../../config/routes";
+import type { NavigationItem } from "../../config/routes";
 
 const { loggedIn, session } = useUserSession();
 const { logout } = useAuthApi();
@@ -313,6 +257,28 @@ const permissions = usePermissions();
 const status = computed(() => loggedIn.value ? 'authenticated' : 'unauthenticated');
 const data = computed(() => ({ user: session.value?.user }));
 
+const hasRouteAccess = (path: string) => {
+  // 统一从路由配置中读取权限要求，并复用现有权限检查能力
+  const required = getRoutePermissions(path);
+  if (!required) {
+    return true;
+  }
+
+  const permissionsToCheck = Array.isArray(required) ? required : [required];
+  return permissionsToCheck.every((permission) => permissions.hasPermission(permission));
+};
+
+// 导航基础数据从配置中生成，后续仅根据用户权限做过滤
+const baseNavigationItems = getNavigationItems();
+
+const navigationLinks = computed<NavigationItem[]>(() => {
+  if (status.value !== 'authenticated') {
+    return [];
+  }
+
+  return baseNavigationItems.filter((item) => hasRouteAccess(item.path));
+});
+
 // 移动端菜单状态
 const isMobileMenuOpen = ref(false);
 
@@ -320,6 +286,17 @@ const isMobileMenuOpen = ref(false);
 const route = useRoute();
 watch(route, () => {
   isMobileMenuOpen.value = false;
+});
+
+watchEffect(() => {
+  if (
+    status.value === 'authenticated' &&
+    !permissions.permissionsLoaded.value &&
+    !permissions.permissionsLoading.value
+  ) {
+    // 登录后确保权限列表已加载，避免首次进入时菜单为空
+    permissions.loadUserPermissions?.();
+  }
 });
 
 const userMenuItems = computed(

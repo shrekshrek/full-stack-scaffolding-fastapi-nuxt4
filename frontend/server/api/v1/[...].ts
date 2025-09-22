@@ -7,7 +7,16 @@ export default defineEventHandler(async (event) => {
   const cleanPath = (path || '').replace(/^\/api\/v1/, '') || ''
   
   // 构建完整的后端URL
-  const targetUrl = `${config.public.apiBase}${cleanPath}${queryString ? `?${queryString}` : ''}`
+  const apiBase = config.public.apiBase || ''
+  const isAbsoluteBase = apiBase.startsWith('http://') || apiBase.startsWith('https://')
+  if (!isAbsoluteBase) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Invalid apiBase configuration',
+      data: 'config.public.apiBase 必须是包含协议的完整URL，请检查 NUXT_PUBLIC_API_BASE'
+    })
+  }
+  const targetUrl = `${apiBase}${cleanPath}${queryString ? `?${queryString}` : ''}`
   
   // 获取请求方法
   const method = getMethod(event)

@@ -52,7 +52,7 @@
 - `action`: 操作类型（如: access, read, write, delete）
 
 ### 配置方式
-- 所有路由权限在 `config/routes.ts` 的 `ROUTE_PERMISSIONS` 中管理
+- 所有路由权限在 `config/routes.ts` 的 `ROUTE_CONFIG` 中管理
 - 权限常量在 `config/permissions.ts` 中定义
 - 路由守卫分3层检查：公开页面 → 登录 → 权限
 
@@ -128,20 +128,21 @@
 ### 配置示例
 
 ```typescript
-export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[] | null> = {
+export const ROUTE_CONFIG = {
   // 无特殊权限要求（仅需登录）
-  '/dashboard': null,
-  '/profile': null,
-  
+  '/dashboard': { permission: null, label: '工作台', showInNav: true },
+  '/profile': { permission: null },
+
   // 单一权限
-  '/users': PERMISSIONS.USER_MGMT_ACCESS,
-  '/users/create': PERMISSIONS.USER_WRITE,
-  
+  '/users': { permission: PERMISSIONS.USER_MGMT_ACCESS, label: '用户管理', showInNav: true },
+  '/users/create': { permission: PERMISSIONS.USER_WRITE },
+
   // 多权限组合（必须全部满足）
-  '/system/advanced': [
-    PERMISSIONS.USER_WRITE,
-    PERMISSIONS.ROLE_WRITE
-  ]
+  '/system/advanced': {
+    permission: [PERMISSIONS.USER_WRITE, PERMISSIONS.ROLE_WRITE],
+    label: '系统高级设置',
+    showInNav: true,
+  }
 }
 ```
 

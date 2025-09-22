@@ -1,6 +1,6 @@
 # Nuxt.js 前端开发指南
 
-本指南旨在为全栈项目的前端部分提供一套清晰、统一的开发规范。前端架构选用 [Nuxt Layers](https://nuxt.com/docs/getting-started/layers)，以实现与模块化后端（见 [fastapi-backend-guidelines.mdc](.cursor/rules/fastapi-backend-guidelines.mdc)）在设计理念上的对称与统一。
+本指南旨在为全栈项目的前端部分提供一套清晰、统一的开发规范。前端架构选用 [Nuxt Layers](https://nuxt.com/docs/getting-started/layers)，以实现与模块化后端（见 [backend/CONTRIBUTING.md](../backend/CONTRIBUTING.md)）在设计理念上的对称与统一。
 
 ---
 
@@ -9,13 +9,13 @@
 1. [核心架构：Nuxt Layers](#1-核心架构nuxt-layers)
 2. [项目结构](#2-项目结构-project-structure)
 3. [Layer 开发规范](#3-layer-开发规范)
-4. [UI 与样式](#4-ui-与样式nuxtuii)
-5. [状态管理](#5-状态管理pinia)
-6. [认证与会话](#6-认证与权限nuxt-auth-utils--rbac)
+4. [UI 与样式](#4-ui-与样式-nuxtui-v3)
+5. [状态管理](#5-状态管理-pinia)
+6. [认证与权限](#6-认证与权限-nuxt-auth-utils--rbac)
 7. [SSR 渲染与数据获取 ⚠️](#7-ssr-渲染与数据获取-⚠️)
 8. [API 通信与统一处理](#8-api-通信与统一处理)
 9. [客户端渲染与数据可视化](#9-客户端渲染与数据可视化)
-10. [本地开发工作流](#10-本地开发工作流)
+10. [API认证处理](#10-api认证处理)
 
 ---
 
@@ -195,7 +195,7 @@ components: [
 **关键组件**：
 - **认证初始化**: `plugins/auth-init.client.ts` 统一处理应用启动时的认证状态和权限预加载
 - **3层路由守卫**: `middleware/route-guard.global.ts` 实现3层权限检查
-- **统一权限配置**: `config/routes.ts` 中ROUTE_PERMISSIONS统一管理所有路由权限
+- **统一权限配置**: `config/routes.ts` 中 `ROUTE_CONFIG` 统一管理所有路由权限与导航
 - **权限常量定义**: `config/permissions.ts` 与后端完全一致的权限常量定义
 - **权限检查逻辑**: `composables/usePermissions.ts` 核心权限检查和常用封装
 - **API处理**: `composables/useApi.ts` 统一处理API请求和401错误
@@ -207,7 +207,7 @@ components: [
 
 - **认证状态**: `useUserSession()` 获取登录状态和用户数据
 - **权限检查**: `usePermissions()` 提供核心权限检查和常用封装
-- **统一路由保护**: 所有权限检查在ROUTE_PERMISSIONS中统一配置
+- **统一路由保护**: 所有权限检查在 `ROUTE_CONFIG` 中统一配置
 - **超管快速通道**: 管理员无需等待权限加载，直接访问
 - **错误处理**: 401错误自动登出，权限不足自动重定向
 
@@ -348,7 +348,7 @@ const { data } = usersApi.getUsers({
 
 ---
 
-### 10. API认证处理（v3.0极简版）
+### 10. API认证处理
 
 **处理方式**: 认证逻辑已内联到 `server/api/v1/[...].ts`
 

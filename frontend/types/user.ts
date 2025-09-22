@@ -27,6 +27,11 @@ export interface UserCreate {
   password: string;
 }
 
+// 管理员创建用户时可选携带角色ID
+export interface AdminUserCreate extends UserCreate {
+  role_ids?: number[];
+}
+
 // 用户更新类型
 export interface UserUpdate {
   username?: string;

@@ -1,4 +1,4 @@
-import type { User, UserCreate, UserUpdate, UserListResponse } from '../types'
+import type { User, UserUpdate, UserListResponse, AdminUserCreate } from '../types'
 
 export const useUsersApi = () => {
   const { apiRequest, useApiData, showSuccess, showError } = useApi()
@@ -22,11 +22,21 @@ export const useUsersApi = () => {
   }
 
   // 创建用户
-  const createUser = async (data: UserCreate) => {
+  const createUser = async (data: AdminUserCreate) => {
     try {
-      const result = await apiRequest<User>('/auth/register', {
+      const payload: Record<string, unknown> = {
+        username: data.username,
+        email: data.email,
+        password: data.password
+      }
+
+      if (data.role_ids && data.role_ids.length > 0) {
+        payload.role_ids = data.role_ids
+      }
+
+      const result = await apiRequest<User>('/users', {
         method: 'POST',
-        body: data,
+        body: payload,
       })
       showSuccess('用户创建成功！')
       return result

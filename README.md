@@ -2,8 +2,6 @@
 
 这是一个功能强大、开箱即用的全栈Web应用脚手架，基于 **FastAPI (后端)** 和 **Nuxt 4 (前端)** 构建。它旨在为需要快速启动新项目的开发者提供一个坚实、现代化的起点。
 
-[![在 Gitpod 中打开](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/shrekshrek/full-stack-scaffolding-fastapi-nuxt3)
-
 ---
 
 ## ✨ 核心特性
@@ -28,8 +26,8 @@
 ### 1. 环境准备
 
 -   安装 [Docker](https://www.docker.com/products/docker-desktop/) 和 [pnpm](https://pnpm.io/installation)。
--   克隆本项目：`git clone https://github.com/shrekshrek/full-stack-scaffolding-fastapi-nuxt3.git`
--   进入项目目录：`cd full-stack-scaffolding-fastapi-nuxt3`
+-   克隆本项目：`git clone <your-repo-url>`
+-   进入项目目录：`cd <your-repo-folder>`
 
 ### 2. 初始化设置
 

@@ -7,7 +7,11 @@ from src.auth.dependencies import get_current_user
 from src.database import get_async_db
 from src.users import schemas, service
 from src.pagination import get_pagination_params, PaginationParams
-from src.rbac.dependencies import require_user_read, require_user_delete
+from src.rbac.dependencies import (
+    require_user_read,
+    require_user_delete,
+    require_user_write,
+)
 from src.rbac import service as rbac_service
 from src.users.dependencies import (
     require_user_read_or_self,
@@ -71,6 +75,23 @@ async def read_users(
         page=pagination.page,
         page_size=pagination.page_size,
     )
+
+
+@router.post(
+    "/",
+    response_model=auth_schemas.UserRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create user",
+)
+async def create_user_admin(
+    user_create: schemas.UserAdminCreate,
+    db: AsyncSession = Depends(get_async_db),
+    _: auth_models.User = Depends(require_user_write),
+):
+    """管理员创建用户并可选分配角色"""
+
+    new_user = await service.create_user_admin(db, user_create)
+    return new_user
 
 
 @router.get(

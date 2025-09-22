@@ -123,7 +123,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Emits
 const emit = defineEmits<{
-  'submit': [data: UserCreate | UserUpdate]
+  'submit': [data: (UserCreate & { role_ids?: number[] }) | UserUpdate]
   'cancel': []
 }>()
 

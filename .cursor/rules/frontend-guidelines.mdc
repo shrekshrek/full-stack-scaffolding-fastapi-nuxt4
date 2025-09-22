@@ -69,8 +69,8 @@ frontend/
 - 使用 `<PermissionGuard>` 组件控制UI
 
 ### 分层权限控制
-- 页面访问权限通过约定自动处理，在 `config/routes.ts` 的 PAGE_ACCESS_MAP 中配置
-- 功能权限通过配置精确控制，在 `config/routes.ts` 的 FUNCTION_PERMISSIONS 中配置
+- 页面访问与功能权限统一在 `config/routes.ts` 的 `ROUTE_CONFIG` 中声明
+- 若需要更细粒度的功能开关，可在对应路由配置数组或对象中定义额外权限
 - API认证逻辑已内联到 `server/api/v1/[...].ts`，无需单独配置文件
 
 ### 错误处理

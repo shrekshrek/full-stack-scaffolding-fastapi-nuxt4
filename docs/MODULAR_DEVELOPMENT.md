@@ -191,12 +191,17 @@ export const PERMISSIONS = {
 }
 
 // frontend/config/routes.ts
-export const ROUTE_PERMISSIONS = {
+export const ROUTE_CONFIG = {
   // ... 现有路由
-  
+
   // 报表模块路由
-  '/reports': PERMISSIONS.REPORTS_ACCESS,
-  '/reports/export': PERMISSIONS.REPORTS_EXPORT,
+  '/reports': {
+    permission: PERMISSIONS.REPORTS_ACCESS,
+    label: '报表中心',
+    showInNav: true,
+    order: 60,
+  },
+  '/reports/export': { permission: PERMISSIONS.REPORTS_EXPORT },
 }
 ```
 

@@ -1,126 +1,130 @@
 /**
- * 统一路由权限配置（简化版）
- * 
- * 所有路由权限在一个地方配置，避免分散管理
+ * 统一路由配置：集中管理权限与导航元数据
  */
 
 import { PERMISSIONS } from './permissions'
 import type { Permission } from '../types/permissions'
 
-// ============================================================================
-// 路由权限映射（统一管理所有权限）
-// ============================================================================
+export interface RouteConfig {
+  permission: Permission | Permission[] | null
+  label?: string
+  showInNav?: boolean
+  order?: number
+}
 
-export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[] | null> = {
-  // ========================================================================
-  // 基础页面（只需登录，无特定权限要求）
-  // ========================================================================
-  '/dashboard': null,  // 所有登录用户都可访问
-  '/profile': null,
-  '/settings': null,
-  '/charts': null,
-  
-  // ========================================================================
-  // 用户管理模块
-  // ========================================================================
-  '/users': PERMISSIONS.USER_MGMT_ACCESS,
-  '/users/create': PERMISSIONS.USER_WRITE,
-  '/users/[id]': PERMISSIONS.USER_READ,
-  '/users/[id]/edit': PERMISSIONS.USER_WRITE,
-  '/users/[id]/roles': PERMISSIONS.USER_WRITE,
-  
-  // ========================================================================
-  // RBAC管理模块
-  // ========================================================================
-  '/rbac': PERMISSIONS.ROLE_MGMT_ACCESS,
-  '/rbac/roles': PERMISSIONS.ROLE_MGMT_ACCESS,
-  '/rbac/roles/create': PERMISSIONS.ROLE_WRITE,
-  '/rbac/roles/[id]': PERMISSIONS.ROLE_READ,
-  '/rbac/roles/[id]/edit': PERMISSIONS.ROLE_WRITE,
-  '/rbac/roles/[id]/permissions': PERMISSIONS.ROLE_WRITE,
-  '/rbac/permissions': PERMISSIONS.PERM_MGMT_ACCESS,
-  '/rbac/permissions/[id]': PERMISSIONS.PERMISSION_READ,
-  
-  // ========================================================================
-  // 扩展示例（根据需要添加）
-  // ========================================================================
-  // '/reports': { target: 'reports', action: 'access' },
-  // '/reports/create': { target: 'reports', action: 'write' },
-  // '/reports/export': { target: 'reports', action: 'export' },
-  // 
-  // // 需要多个权限的示例
-  // '/system/advanced': [
-  //   { target: 'user', action: 'write' },
-  //   { target: 'role', action: 'write' }
-  // ],
+export interface NavigationItem {
+  path: string
+  label: string
+  order: number
+}
+
+// 每个路由集中声明权限与导航元信息，新增模块时只需要在此补充一条记录
+export const ROUTE_CONFIG: Record<string, RouteConfig> = {
+  '/dashboard': {
+    permission: null,
+    label: '工作台',
+    showInNav: true,
+    order: 10,
+  },
+  '/profile': { permission: null },
+  '/settings': { permission: null },
+  '/charts': {
+    permission: null,
+    label: '数据图表',
+    showInNav: true,
+    order: 20,
+  },
+  '/users': {
+    permission: PERMISSIONS.USER_MGMT_ACCESS,
+    label: '用户管理',
+    showInNav: true,
+    order: 30,
+  },
+  '/users/create': { permission: PERMISSIONS.USER_WRITE },
+  '/users/[id]': { permission: PERMISSIONS.USER_READ },
+  '/users/[id]/edit': { permission: PERMISSIONS.USER_WRITE },
+  '/users/[id]/roles': { permission: PERMISSIONS.USER_WRITE },
+  '/rbac': { permission: PERMISSIONS.ROLE_MGMT_ACCESS },
+  '/rbac/roles': {
+    permission: PERMISSIONS.ROLE_MGMT_ACCESS,
+    label: '角色管理',
+    showInNav: true,
+    order: 40,
+  },
+  '/rbac/roles/create': { permission: PERMISSIONS.ROLE_WRITE },
+  '/rbac/roles/[id]': { permission: PERMISSIONS.ROLE_READ },
+  '/rbac/roles/[id]/edit': { permission: PERMISSIONS.ROLE_WRITE },
+  '/rbac/roles/[id]/permissions': { permission: PERMISSIONS.ROLE_WRITE },
+  '/rbac/permissions': {
+    permission: PERMISSIONS.PERM_MGMT_ACCESS,
+    label: '权限管理',
+    showInNav: true,
+    order: 50,
+  },
+  '/rbac/permissions/[id]': { permission: PERMISSIONS.PERMISSION_READ },
 }
 
 /**
  * 获取路由所需权限
  */
 export function getRoutePermissions(path: string): Permission | Permission[] | null {
-  // 1. 精确匹配
-  if (ROUTE_PERMISSIONS[path] !== undefined) {
-    return ROUTE_PERMISSIONS[path]
+  const config = getRouteConfig(path)
+  return config?.permission ?? null
+}
+
+function getRouteConfig(path: string): RouteConfig | undefined {
+  if (ROUTE_CONFIG[path]) {
+    return ROUTE_CONFIG[path]
   }
-  
-  // 2. 动态路由匹配（处理 [id] 等参数）
-  for (const [route, permission] of Object.entries(ROUTE_PERMISSIONS)) {
-    if (route.includes('[')) {
-      // 将动态路由模式转换为正则
-      // /users/[id]/edit -> /users/[^/]+/edit
-      const pattern = route.replace(/\[.*?\]/g, '[^/]+')
-      const regex = new RegExp(`^${pattern}$`)
-      if (regex.test(path)) {
-        return permission
-      }
+
+  // 动态路由（[id]等）通过正则方式匹配
+  for (const [route, config] of Object.entries(ROUTE_CONFIG)) {
+    if (!route.includes('[')) {
+      continue
+    }
+    const pattern = route.replace(/\[.*?\]/g, '[^/]+')
+    const regex = new RegExp(`^${pattern}$`)
+    if (regex.test(path)) {
+      return config
     }
   }
-  
-  // 3. 模块前缀匹配（兜底策略）
-  // 如果没有精确匹配，检查模块级权限
-  const pathParts = path.split('/')
-  if (pathParts.length >= 2) {
-    const modulePrefix = '/' + pathParts[1]
-    if (ROUTE_PERMISSIONS[modulePrefix] !== undefined) {
-      return ROUTE_PERMISSIONS[modulePrefix]
+
+  const parts = path.split('/')
+  if (parts.length >= 2) {
+    const prefix = `/${parts[1]}`
+    // 兜底返回模块前缀的权限
+    if (ROUTE_CONFIG[prefix]) {
+      return ROUTE_CONFIG[prefix]
     }
   }
-  
-  // 4. 无权限要求（默认只需登录）
-  return null
+
+  return undefined
 }
 
 /**
- * 检查是否为公开页面（无需登录）
+ * 生成导航菜单（已按 order 排序）
  */
+export function getNavigationItems(): NavigationItem[] {
+  // 只保留需要出现在导航中的路由，并根据 order 进行排序
+  return Object.entries(ROUTE_CONFIG)
+    .filter(([, config]) => config.showInNav && config.label)
+    .map(([path, config]) => ({
+      path,
+      label: config.label as string,
+      order: config.order ?? 0,
+    }))
+    .sort((a, b) => a.order - b.order)
+}
+
 export function isPublicPage(path: string): boolean {
-  const publicPages = [
-    '/',           // 首页
-    '/401',        // 未授权
-    '/403',        // 禁止访问
-    '/404',        // 页面不存在
-    '/500',        // 服务器错误
-  ]
+  const publicPages = ['/', '/401', '/403', '/404', '/500']
   return publicPages.includes(path)
 }
 
-/**
- * 检查是否为客人专用页面（已登录用户不能访问）
- */
 export function isGuestOnlyPage(path: string): boolean {
-  const guestPages = [
-    '/login',
-    '/register',
-    '/reset-password',
-    '/request-password-reset',
-  ]
-  return guestPages.some(page => path.startsWith(page))
+  const guestPages = ['/login', '/register', '/reset-password', '/request-password-reset']
+  return guestPages.some((page) => path.startsWith(page))
 }
-
-// ============================================================================
-// 导出用户信息接口（用于类型安全）
-// ============================================================================
 
 export interface UserInfo {
   id: number

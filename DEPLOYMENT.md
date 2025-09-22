@@ -44,6 +44,8 @@ pnpm dev
    # - NUXT_SESSION_PASSWORD: 使用 openssl rand -base64 32 生成
    # - DATABASE_URL: 确保密码与POSTGRES_PASSWORD一致
    # - BACKEND_CORS_ORIGINS: 设置为实际域名
+   # - NUXT_PUBLIC_API_BASE: 指向后端暴露的完整地址（含协议和 /api/v1），如 https://api.example.com/api/v1
+   #   若生产环境通过统一域名或反向代理/CDN 暴露服务，也必须在部署脚本或容器环境变量中显式设置该值
    ```
 
 2. **部署到生产环境**
