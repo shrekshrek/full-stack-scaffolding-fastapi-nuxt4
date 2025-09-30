@@ -33,14 +33,25 @@ export const useApi = () => {
    */
   const handleApiError = (error: unknown) => {
     console.error('API 错误:', error)
-    
+
     // 获取错误信息
-    const errorObj = error as { status?: number; statusCode?: number; data?: { detail?: string | Array<{ msg: string }> } }
+    const errorObj = error as {
+      status?: number
+      statusCode?: number
+      data?: {
+        error?: { code?: string; message?: string }
+        detail?: string | Array<{ msg: string }>
+      }
+    }
     const status = errorObj.status || errorObj.statusCode
     let message = '请求失败'
-    
-    // 解析错误消息
-    if (errorObj.data?.detail) {
+
+    // 解析错误消息 - 优先使用后端统一格式
+    if (errorObj.data?.error?.message) {
+      // 后端统一错误格式: { error: { code, message } }
+      message = errorObj.data.error.message
+    } else if (errorObj.data?.detail) {
+      // FastAPI 默认格式: { detail: string | array }
       if (typeof errorObj.data.detail === 'string') {
         message = errorObj.data.detail
       } else if (Array.isArray(errorObj.data.detail) && errorObj.data.detail.length > 0) {
