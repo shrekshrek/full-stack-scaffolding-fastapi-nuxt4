@@ -29,11 +29,13 @@ export default defineNuxtConfig({
     // 私有配置（仅服务端可用）
     // 可以通过环境变量 NUXT_API_SECRET 覆盖
     apiSecret: '',
-    
+
     // 公共配置（客户端和服务端都可用）
     public: {
-      // API基础URL - 可以通过 NUXT_PUBLIC_API_BASE 覆盖
-      apiBase: 'http://localhost:8000/api/v1'
+      // API基础URL - 客户端使用相对路径通过代理，服务端可覆盖为完整URL
+      // 开发环境：使用相对路径 /api/v1（通过 nitro devProxy）
+      // 生产环境：可通过 NUXT_PUBLIC_API_BASE 覆盖
+      apiBase: '/api/v1'
     }
   },
   
