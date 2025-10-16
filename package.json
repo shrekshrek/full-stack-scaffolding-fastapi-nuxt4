@@ -31,7 +31,7 @@
     "be:install": "docker-compose exec backend uv sync",
     "be:add": "docker-compose exec backend uv add",
     "be:shell": "docker-compose exec backend bash",
-    "be:db:cli": "docker-compose exec postgres-db psql -U postgres -d fastapi_db",
+    "be:db:cli": "docker-compose exec postgres_db sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB'",
     "be:migrate:up": "docker-compose exec backend uv run alembic upgrade head",
     "be:migrate:make": "docker-compose exec backend uv run alembic revision --autogenerate -m",
     "be:lint": "docker-compose exec backend uv run ruff check --fix",

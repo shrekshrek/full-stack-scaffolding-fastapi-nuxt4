@@ -19,6 +19,9 @@
 开发环境配置用于本地开发，包含所有服务的配置：
 
 ```bash
+# ===== 项目标识 (多项目隔离) =====
+PROJECT_NAME=fullstack_scaffold  # 每个项目使用唯一名称
+
 # ===== 环境标识 =====
 ENVIRONMENT=development
 
@@ -27,10 +30,10 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_DB=fastapi_db
+POSTGRES_DB=${PROJECT_NAME}_db  # 根据项目名动态生成
 
 # ===== 后端配置 =====
-DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres_db:5432/fastapi_db
+DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/${POSTGRES_DB}
 REDIS_URL=redis://redis:6379
 SECRET_KEY=your-secret-key-for-development-only
 PROJECT_NAME=Full-Stack Starter API
