@@ -49,6 +49,8 @@ NUXT_SESSION_PASSWORD=this-is-a-32-character-string-for-dev-only!
 
 生产环境配置用于服务器部署，包含所有安全敏感的配置：
 
+> 📝 **注意**: 生产环境通常使用固定的数据库名（如 `fastapi_db`），因为生产环境一般是一台服务器部署一个项目，不需要像开发环境那样支持多项目隔离。
+
 ```bash
 # ===== 环境标识 =====
 ENVIRONMENT=production
@@ -56,7 +58,7 @@ ENVIRONMENT=production
 # ===== PostgreSQL 配置 =====
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=CHANGE_THIS_STRONG_PASSWORD
-POSTGRES_DB=fastapi_db
+POSTGRES_DB=fastapi_db  # 生产环境使用固定名称
 
 # ===== 后端配置 =====
 DATABASE_URL=postgresql+psycopg://postgres:CHANGE_THIS_STRONG_PASSWORD@postgres_db:5432/fastapi_db
