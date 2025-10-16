@@ -23,6 +23,8 @@
 
 我们采用 Nuxt Layers 实现前端的模块化和领域驱动设计（DDD）。
 
+#### 核心架构特性
+
 - **架构对称**: 每个前端业务模块作为一个独立的 Layer，与后端 FastAPI 的领域模块一一对应（如 `frontend/layers/auth` 对应 `backend/src/auth`）。
 - **关注点分离**:
     - **业务 Layer**: 封装特定业务领域的所有功能，如 `layers/auth`, `layers/rbac`。
@@ -162,10 +164,10 @@ components: [
 
 ---
 
-### 4. UI 与样式 (`@nuxt/ui v3`)
+### 4. UI 与样式 (`@nuxt/ui v4`)
 
--   **技术选型**: 使用 `@nuxt/ui v3` 作为核心 UI 库，基于 `Tailwind CSS` 和 `TanStack Table` 构建
--   **版本要求**: **必须使用 v3 版本**，API 与 v2 版本不兼容
+-   **技术选型**: 使用 `@nuxt/ui v4` 作为核心 UI 库，基于 `Tailwind CSS v4` 和 `Reka UI` 构建
+-   **版本要求**: **必须使用 v4 版本**，已从 Headless UI 迁移到 Reka UI
 -   **核心优势**:
     -   与 Nuxt 无缝集成，组件自动导入
     -   开箱即用的深色模式

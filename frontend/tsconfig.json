@@ -24,4 +24,4 @@
     "layers/**/*.vue"
   ],
   "exclude": ["node_modules"]
-} 
+}
