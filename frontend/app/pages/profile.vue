@@ -219,20 +219,10 @@ const handleSubmit = async () => {
       email: formState.value.email
     })
     
-    toast.add({
-      title: '更新成功',
-      description: '个人资料已更新',
-      color: 'success'
-    })
-    
     isEditing.value = false
     await refresh()
-  } catch (err) {
-    toast.add({
-      title: '更新失败',
-      description: err instanceof Error ? err.message : '请稍后重试',
-      color: 'error'
-    })
+  } catch {
+    // 错误已由 useApi 自动处理
   } finally {
     loading.value = false
   }

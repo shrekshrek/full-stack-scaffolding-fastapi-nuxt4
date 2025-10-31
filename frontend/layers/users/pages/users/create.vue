@@ -54,24 +54,9 @@ const handleSubmit = async (data: UserCreate | UserUpdate) => {
   loading.value = true
   try {
     await usersApi.createUser(createData)
-    
-    // 显示成功消息
-    const toast = useToast()
-    toast.add({
-      title: '创建成功',
-      description: `用户 "${createData.username}" 已创建`,
-      color: 'success'
-    })
-    
     navigateTo('/users')
   } catch {
-    // 显示错误消息
-    const toast = useToast()
-    toast.add({
-      title: '创建失败',
-      description: '无法创建用户，请稍后重试',
-      color: 'error'
-    })
+    // 错误已由 useApi 自动处理
   } finally {
     loading.value = false
   }
