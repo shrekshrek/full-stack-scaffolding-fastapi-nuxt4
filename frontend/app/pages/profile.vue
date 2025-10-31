@@ -170,7 +170,6 @@ definePageMeta({
 
 // 获取当前用户信息
 const usersApi = useUsersApi()
-const toast = useToast()
 
 // 获取用户详细信息
 const { data, pending, error, refresh } = await usersApi.getCurrentUser()
