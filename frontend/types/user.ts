@@ -15,7 +15,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  roles?: string[]; // 用户的角色名称数组（与后端一致）
+  roles: string[]; // 用户的角色名称数组（与后端一致，至少返回空数组）
   created_at: string; // ISO 8601 格式的时间字符串
   updated_at: string; // ISO 8601 格式的时间字符串
 }

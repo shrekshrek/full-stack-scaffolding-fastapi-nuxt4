@@ -135,6 +135,12 @@ backend/
 - `exceptions.py`: 自定义异常类定义
 - `pagination.py`: 分页工具函数
 - `utils.py`: 通用工具函数（CPU密集型任务处理等）
+- `redis_client.py`: Redis连接配置
+- `celery_app.py`: Celery应用配置
+
+### 3.5 任务队列（Celery）
+- **Worker 启动示例（gevent 池）**：`celery -A src.celery_app.celery_app worker -P gevent -c 200`
+- 根据业务选择合适的 `-c` 并发数（IO 密集可提高，CPU 密集适度）
 
 ---
 

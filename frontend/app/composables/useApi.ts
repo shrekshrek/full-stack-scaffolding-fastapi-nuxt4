@@ -17,6 +17,9 @@ export const useApi = () => {
   const config = useRuntimeConfig()
   const { session, fetch: fetchSession, clear: clearSession } = useUserSession()
 
+  type ApiFetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
+  type ApiDataOptions<T> = NonNullable<Parameters<typeof useFetch<T>>[1]>
+
   let sessionFetchPromise: Promise<void> | null = null
   type SessionLoadState = 'unloaded' | 'loaded' | 'loaded-with-token'
   let sessionState: SessionLoadState = 'unloaded'
@@ -225,7 +228,7 @@ export const useApi = () => {
    * 基于 $fetch 的 API 请求
    * 用于客户端操作（如表单提交、登录等）
    */
-  const apiRequest = async <T = unknown>(path: string, options: Record<string, unknown> = {}): Promise<T> => {
+  const apiRequest = async <T = unknown>(path: string, options: ApiFetchOptions = {}): Promise<T> => {
     const fullPath = buildApiPath(path)
     const token = await ensureAuthenticated()
 
@@ -249,7 +252,7 @@ export const useApi = () => {
    * 基于 useFetch 的数据获取
    * 支持 SSR，用于页面数据获取
    */
-  const useApiData = <T = unknown>(path: string, options: Record<string, unknown> = {}) => {
+  const useApiData = <T = unknown>(path: string, options: ApiDataOptions<T> = {}) => {
     const fullPath = buildApiPath(path)
     const userOnRequest = options.onRequest as ((ctx: unknown) => unknown | Promise<unknown>) | undefined
     const userOnResponseError = options.onResponseError as

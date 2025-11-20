@@ -7,6 +7,8 @@ import redis.asyncio as redis
 from src.auth import schemas, service, models, security
 from src.auth.dependencies import get_current_user, oauth2_scheme
 from src.auth.blacklist import add_token_to_blacklist
+from src.rbac import service as rbac_service
+from src.users import service as user_service
 from src.config import settings
 from src.database import get_async_db
 from src.rate_limit import auth_limiter
@@ -31,9 +33,10 @@ async def register(
     # 使用统一异常处理，异常将由全局中间件处理
     db_user = await service.create_user(db=db, user=user)
 
-    # 用户注册成功，无需邮件通知
-
-    return db_user
+    # 用户注册成功，补充角色确保响应包含 roles 数组
+    user_roles = await rbac_service.get_user_roles(db, db_user.id)
+    role_names = [role.name for role in user_roles]
+    return user_service._convert_user_to_schema(db_user, role_names)
 
 
 @router.post(
