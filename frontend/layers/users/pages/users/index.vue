@@ -13,7 +13,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <UButton icon="i-heroicons-plus" @click="navigateTo('/users/create')">
+        <UButton icon="i-heroicons-plus" to="/users/create">
           新增用户
         </UButton>
         <UButton
@@ -91,7 +91,8 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed, watch, resolveComponent } from "vue";
+import { h, ref, computed, watch } from "vue";
+import { UAvatar, UBadge, UButton } from "#components";
 import type { User } from "../../types";
 import type { TableColumn } from "@nuxt/ui";
 import { getRoleDisplayName } from "../../../rbac/utils/permissions";  // 明确的跨模块依赖
@@ -207,7 +208,6 @@ const columns: TableColumn<User>[] = [
     accessorKey: "username",
     header: "用户信息",
     cell: ({ row }) => {
-      const UAvatar = resolveComponent("UAvatar");
       const username = row.getValue("username") as string;
       return h("div", { class: "flex items-center space-x-3" }, [
         h(UAvatar, {
@@ -233,7 +233,6 @@ const columns: TableColumn<User>[] = [
     accessorKey: "roles",
     header: "角色",
     cell: ({ row }) => {
-      const UBadge = resolveComponent("UBadge");
       const roles = row.getValue("roles") as string[];
 
       if (!roles || roles.length === 0) {
@@ -273,29 +272,27 @@ const columns: TableColumn<User>[] = [
     id: "actions",
     header: "操作",
     cell: ({ row }) => {
-      const UButton = resolveComponent("UButton");
-
       return h("div", { class: "flex items-center gap-2" }, [
         h(UButton, {
           color: "neutral",
           variant: "ghost",
           size: "sm",
           icon: "i-heroicons-eye",
-          onClick: () => navigateTo(`/users/${row.original.id}`),
+          to: `/users/${row.original.id}`,
         }),
         h(UButton, {
           color: "primary",
           variant: "ghost",
           size: "sm",
           icon: "i-heroicons-user-group",
-          onClick: () => navigateTo(`/users/${row.original.id}/roles`),
+          to: `/users/${row.original.id}/roles`,
         }),
         h(UButton, {
           color: "neutral",
           variant: "ghost",
           size: "sm",
           icon: "i-heroicons-pencil-square",
-          onClick: () => navigateTo(`/users/${row.original.id}/edit`),
+          to: `/users/${row.original.id}/edit`,
         }),
         h(UButton, {
           color: "error",

@@ -21,18 +21,18 @@
                 variant="ghost"
                 size="sm"
                 :icon="
-                  $colorMode.value === 'dark'
+                  colorMode.value === 'dark'
                     ? 'i-heroicons-sun'
                     : 'i-heroicons-moon'
                 "
                 :aria-label="
-                  $colorMode.value === 'dark'
+                  colorMode.value === 'dark'
                     ? '切换到浅色模式'
                     : '切换到深色模式'
                 "
                 @click="
-                  $colorMode.preference =
-                    $colorMode.value === 'dark' ? 'light' : 'dark'
+                  colorMode.preference =
+                    colorMode.value === 'dark' ? 'light' : 'dark'
                 "
               />
               <template #fallback>
@@ -95,18 +95,18 @@
                 variant="ghost"
                 size="sm"
                 :icon="
-                  $colorMode.value === 'dark'
+                  colorMode.value === 'dark'
                     ? 'i-heroicons-sun'
                     : 'i-heroicons-moon'
                 "
                 :aria-label="
-                  $colorMode.value === 'dark'
+                  colorMode.value === 'dark'
                     ? '切换到浅色模式'
                     : '切换到深色模式'
                 "
                 @click="
-                  $colorMode.preference =
-                    $colorMode.value === 'dark' ? 'light' : 'dark'
+                  colorMode.preference =
+                    colorMode.value === 'dark' ? 'light' : 'dark'
                 "
               />
               <template #fallback>
@@ -256,6 +256,7 @@ import { getNavigationItems, getRoutePermissions } from "~/config/routes";
 const { loggedIn, session } = useUserSession();
 const { logout } = useAuthApi();
 const permissions = usePermissions();
+const colorMode = useColorMode();
 
 // 计算属性以兼容原有代码
 const status = computed(() => loggedIn.value ? 'authenticated' : 'unauthenticated');

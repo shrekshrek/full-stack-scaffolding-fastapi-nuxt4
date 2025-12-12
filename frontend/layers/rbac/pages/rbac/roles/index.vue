@@ -15,7 +15,7 @@
       <div class="flex items-center gap-3">
         <UButton
           icon="i-heroicons-plus"
-          @click="navigateTo('/rbac/roles/create')"
+          to="/rbac/roles/create"
         >
           新增角色
         </UButton>
@@ -94,7 +94,8 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed, watch, resolveComponent } from "vue";
+import { h, ref, computed, watch } from "vue";
+import { UBadge, UButton } from "#components";
 import type { Role, PermissionWithMeta as Permission } from "../../../types";
 import type { TableColumn } from "@nuxt/ui";
 import { isCoreRole } from "../../../utils/permissions";
@@ -242,7 +243,6 @@ const columns: TableColumn<Role>[] = [
     accessorKey: "permissions",
     header: "权限数量",
     cell: ({ row }) => {
-      const UBadge = resolveComponent("UBadge");
       const permissions = row.getValue("permissions") as Permission[] || [];
       return h(
         UBadge,
@@ -255,7 +255,6 @@ const columns: TableColumn<Role>[] = [
     accessorKey: "is_system",
     header: "类型",
     cell: ({ row }) => {
-      const UBadge = resolveComponent("UBadge");
       const isSystem = row.getValue("is_system") as boolean;
       return h(
         UBadge,
@@ -271,7 +270,6 @@ const columns: TableColumn<Role>[] = [
     id: "actions",
     header: "操作",
     cell: ({ row }) => {
-      const UButton = resolveComponent("UButton");
       const isCore = isCoreRole(row.original.name);
 
       return h("div", { class: "flex items-center gap-2" }, [
@@ -280,14 +278,14 @@ const columns: TableColumn<Role>[] = [
           variant: "ghost",
           size: "sm",
           icon: "i-heroicons-eye",
-          onClick: () => navigateTo(`/rbac/roles/${row.original.id}`),
+          to: `/rbac/roles/${row.original.id}`,
         }),
         h(UButton, {
           color: "primary",
           variant: "ghost",
           size: "sm",
           icon: "i-heroicons-key",
-          onClick: () => navigateTo(`/rbac/roles/${row.original.id}/permissions`),
+          to: `/rbac/roles/${row.original.id}/permissions`,
         }),
         !isCore &&
           h(UButton, {
@@ -295,7 +293,7 @@ const columns: TableColumn<Role>[] = [
             variant: "ghost",
             size: "sm",
             icon: "i-heroicons-pencil-square",
-            onClick: () => navigateTo(`/rbac/roles/${row.original.id}/edit`),
+            to: `/rbac/roles/${row.original.id}/edit`,
           }),
         !isCore &&
           h(UButton, {
