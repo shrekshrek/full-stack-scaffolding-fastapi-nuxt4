@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as redis
 
 from src.auth import schemas, service, models, security
+from src.schemas import MessageResponse
 from src.auth.dependencies import get_current_user, oauth2_scheme
 from src.auth.blacklist import add_token_to_blacklist
 from src.rbac import service as rbac_service
@@ -68,7 +69,7 @@ async def login(
 
 @router.post(
     "/logout",
-    response_model=schemas.Msg,
+    response_model=MessageResponse,
     status_code=status.HTTP_200_OK,
     summary="User logout",
 )
@@ -84,12 +85,12 @@ async def logout(
     expires_in = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     await add_token_to_blacklist(redis_client, token, expires_in)
 
-    return {"msg": "Successfully logged out"}
+    return MessageResponse(message="Successfully logged out")
 
 
 @router.post(
     "/change-password",
-    response_model=schemas.Msg,
+    response_model=MessageResponse,
     status_code=status.HTTP_200_OK,
     summary="Change password",
 )
@@ -112,4 +113,4 @@ async def change_password_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect or new password is the same as current password.",
         )
-    return {"msg": "Password has been changed successfully."}
+    return MessageResponse(message="Password has been changed successfully.")

@@ -46,8 +46,10 @@ async def lifespan(app: FastAPI):
     logger.info("📴 应用关闭")
 
 
+app_display_name = settings.APP_NAME or settings.PROJECT_NAME
+
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title=app_display_name,
     description="API for the full-stack starter project.",
     version=settings.VERSION,
     docs_url="/docs",
@@ -126,7 +128,7 @@ async def health_check(
 
     health_status = {
         "status": "healthy",
-        "service": settings.PROJECT_NAME,
+        "service": app_display_name,
         "version": settings.VERSION if include_details else None,
         "checks": {} if include_details else None,
     }
@@ -173,7 +175,7 @@ async def health_check(
 async def read_root():
     """根路径欢迎信息"""
     return RootResponse(
-        message=f"Welcome to the {settings.PROJECT_NAME}", version=settings.VERSION
+        message=f"Welcome to the {app_display_name}", version=settings.VERSION
     )
 
 

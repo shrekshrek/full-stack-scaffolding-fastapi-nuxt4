@@ -3,7 +3,7 @@
     <!-- 欢迎横幅 -->
     <UCard class="bg-gradient-to-r from-blue-600 to-indigo-600 border-0">
       <div class="text-center text-white">
-        <h1 class="text-4xl font-bold mb-4">全栈项目脚手架</h1>
+        <h1 class="text-4xl font-bold mb-4">{{ appName }}</h1>
         <p class="text-xl text-blue-100 mb-6">
           基于 Nuxt 4 + FastAPI 的现代化全栈开发解决方案
         </p>
@@ -44,14 +44,6 @@
           >
             <UIcon name="i-heroicons-squares-2x2" class="w-5 h-5" />
             进入工作台
-          </NuxtLink>
-          <NuxtLink 
-            v-if="permissions.canAccessDashboard"
-            to="/charts"
-            class="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-lg transition-colors"
-          >
-            <UIcon name="i-heroicons-chart-bar" class="w-5 h-5" />
-            查看图表
           </NuxtLink>
         </div>
       </div>
@@ -128,8 +120,11 @@
 const { session, loggedIn } = useUserSession();
 const permissions = usePermissions();
 
+const config = useRuntimeConfig();
+const appName = computed(() => config.public.appName || '全栈脚手架');
+
 useHead({
-  title: '全栈项目脚手架',
+  title: appName.value,
   meta: [
     { name: 'description', content: '基于 Nuxt 4 + FastAPI 的现代化全栈开发解决方案' }
   ]

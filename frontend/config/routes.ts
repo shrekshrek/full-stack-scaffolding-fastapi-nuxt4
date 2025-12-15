@@ -28,12 +28,6 @@ export const ROUTE_CONFIG: Record<string, RouteConfig> = {
   },
   '/profile': { permission: null },
   '/settings': { permission: null },
-  '/charts': {
-    permission: null,
-    label: '数据图表',
-    showInNav: true,
-    order: 20,
-  },
   '/users': {
     permission: PERMISSIONS.USER_MGMT_ACCESS,
     label: '用户管理',
