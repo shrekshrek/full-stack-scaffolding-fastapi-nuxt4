@@ -1,5 +1,7 @@
 ---
-alwaysApply: true
+description: FastAPI 后端开发规范，适用于 backend 目录下的 Python 代码
+globs: ["backend/**"]
+alwaysApply: false
 ---
 # FastAPI 后端开发核心规则
 
