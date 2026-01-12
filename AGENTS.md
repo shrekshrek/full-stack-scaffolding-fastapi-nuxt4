@@ -15,8 +15,8 @@
 - **工作流规则**: `.cursor/rules/workflow-guardrails.mdc`
 
 ## 详细开发文档
-- **后端详细规范**: `backend/CONTRIBUTING.md`
-- **前端详细规范**: `frontend/CONTRIBUTING.md`
+- **后端详细规范**: `backend/CODING_GUIDE.md`
+- **前端详细规范**: `frontend/CODING_GUIDE.md`
 - **模块开发指南**: `docs/MODULAR_DEVELOPMENT.md`
 - **权限管理指南**: `docs/PERMISSION_MANAGEMENT.md`
 
